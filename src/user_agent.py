@@ -7,7 +7,7 @@ import pjsua2 as pj
 
 from config import UserAgent
 from custom_callbacks import Account
-from utils import detect_answering_machine, get_logger
+from utils import detect_answering_machine, get_call_id, get_logger
 
 
 def run_user_agent(
