@@ -1,3 +1,5 @@
+# Configuration module for the answering machine detection project.
+
 import os
 from dataclasses import dataclass
 from typing import ClassVar
