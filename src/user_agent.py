@@ -55,6 +55,7 @@ def run_user_agent(
     t0 = time.time()
     while acc._call is None:
         time.sleep(.01)
+        # renewal condition
         if time.time() - t0 > UserAgent.renew_time:
             t0 = time.time()
             logger.info("Renew Registration...")
