@@ -1,5 +1,6 @@
 # Configuration module for the answering machine detection project.
 
+import logging
 import os
 from dataclasses import dataclass
 from typing import ClassVar
@@ -38,7 +39,7 @@ class ObjectStorage:
 class UserAgent:
     max_inv_confirmed: float = 2
     max_media_consent: float = 10.
-    log_level: int = 1
+    log_level: int = logging.DEBUG
     renew_time: float = 60
 
 
