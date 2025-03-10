@@ -36,8 +36,23 @@ def detect_answering_machine(call: Call) -> None:
     pass
 
 
-def store_wav():
-    pass
+def store_wav(file_path):
+    logger = get_logger()
+    try:
+        client = Minio(
+            ObjectStorage.minio_url,
+            access_key=ObjectStorage.minio_access_key,
+            secret_key=ObjectStorage.minio_secret_key,
+            secure=False,
+        )
+        client.fput_object(
+            ObjectStorage.minio_wav_bucket_name,
+            file_path,
+            file_path,
+        )
+        os.remove(file_path)
+    except:
+        logger.exception("Can not store wav file in object storage.")
 
 
 def store_metadata():
