@@ -98,9 +98,7 @@ def run_user_agent(
         logger.info(E)
         metadata_dict = {
             "call_id": call_id,
-            "result": "hangup",
-            "states": "exception",
-            "conversation": "",
+            "result": "exception",
             "duration": 0,
         }
     metadata_dict["dialed_number"] = dialed_number
