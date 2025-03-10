@@ -1,5 +1,7 @@
 # helper functions
 
+import io
+import json
 import logging
 import os
 import re
@@ -62,8 +64,28 @@ def store_wav(file_path):
         logger.exception("Can not store wav file in object storage.")
 
 
-def store_metadata():
-    pass
+def store_metadata(file_path, metadata_dict):
+    logger = get_logger()
+    try:
+        client = Minio(
+            ObjectStorage.minio_url,
+            access_key=ObjectStorage.minio_access_key,
+            secret_key=ObjectStorage.minio_secret_key,
+            secure=False,
+        )
+        json_data = json.dumps(metadata_dict)
+        json_data_len = len(json_data)
+        json_data = io.BytesIO(json_data.encode())
+        client.put_object(
+            ObjectStorage.minio_metadata_bucket_name,
+            file_path,
+            json_data,
+            json_data_len,
+        )
+    except:
+        logger.exception("Can not store metadata in object storage.")
+        with open(file_path, "w") as f:
+            json.dump(metadata_dict, f, indent=4)
 
 
 def add_call_log_to_database():
