@@ -16,12 +16,12 @@ from config import ObjectStorage, UserAgent
 _logger = None
 
 
-def get_logger(name: str = "AMD") -> logging.Logger:
+def get_logger() -> logging.Logger:
     """Get logger."""
     global _logger
     if _logger is None:
         logging.basicConfig(
-            format="USER-AGENT-LOG %(asctime)s\t%(levelname)s\t%(message)s",
+            format="AMD-LOG %(asctime)s\t%(levelname)s\t%(message)s",
             level=UserAgent.log_level,
         )
         _logger = logging.getLogger()
