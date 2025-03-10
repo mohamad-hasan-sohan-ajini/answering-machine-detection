@@ -102,8 +102,6 @@ def run_user_agent(
             "states": "exception",
             "conversation": "",
             "duration": 0,
-            "num_turns": 0,
-            "last_intent_index": -1,
         }
     metadata_dict["dialed_number"] = dialed_number
     result = metadata_dict["result"]
