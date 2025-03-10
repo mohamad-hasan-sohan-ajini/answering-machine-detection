@@ -88,8 +88,32 @@ def store_metadata(file_path, metadata_dict):
             json.dump(metadata_dict, f, indent=4)
 
 
-def add_call_log_to_database():
-    pass
+def add_call_log_to_database(metadata_dict):
+    logger = get_call_id
+    try:
+        now_datetime = datetime.datetime.now()
+        now_time = datetime.time(
+            now_datetime.hour,
+            now_datetime.minute,
+            now_datetime.second,
+            now_datetime.microsecond,
+        )
+        now_date = datetime.date(
+            now_datetime.year, now_datetime.month, now_datetime.day
+        )
+        call_record = AMDRecord(
+            metadata_dict["call_id"],
+            now_date,
+            now_time,
+            metadata_dict["result"],
+            metadata_dict["num_turns"],
+            metadata_dict["dialed_number"],
+            metadata_dict["duration"],
+        )
+        db_session.add(call_record)
+        db_session.commit()
+    except:
+        logger.info("Cannot save metadata in database!")
 
 
 def call_api():
