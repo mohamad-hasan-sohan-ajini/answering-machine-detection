@@ -89,7 +89,7 @@ def run_user_agent(
     call_id = call.getInfo().callIdString
     logger.info(f"{call_id = }")
     try:
-        metadata_dict = navigate_dialogue(call)
+        metadata_dict = detect_answering_machine(call)
     except Exception as E:
         logger.info("exception at navigate_dialogue " * 10)
         logger.info(E)
