@@ -88,9 +88,6 @@ def run_user_agent(
         time.sleep(.1)
     call_id = call.getInfo().callIdString
     logger.info(f"{call_id = }")
-    # process call: conversational AI comes in
-    # from IPython import embed
-    # embed()
     try:
         metadata_dict = navigate_dialogue(call)
     except Exception as E:
