@@ -32,4 +32,25 @@ def get_call_id(remote_uri):
 
 def detect_answering_machine(call: Call) -> None:
     """Detect answering machine."""
+    logger = get_logger()
+    pass
+
+
+def store_wav():
+    pass
+
+
+def store_metadata():
+    pass
+
+
+def add_call_log_to_database():
+    pass
+
+
+def call_api():
+    pass
+
+
+def delete_pj_obj_safely():
     pass
