@@ -7,14 +7,18 @@ import pjsua2 as pj
 
 from config import UserAgent
 from custom_callbacks import Account
-from utils import detect_answering_machine, get_call_id, get_logger
+from utils import (
+    detect_answering_machine,
+    get_call_id,
+    get_logger,
+)
 
 
 def run_user_agent(
-        domain,
-        bot_username,
-        bot_password,
-        operator_username,
+    domain,
+    bot_username,
+    bot_password,
+    operator_username,
 ):
     """Run the user agent."""
     # Log initial of the agent
@@ -54,7 +58,7 @@ def run_user_agent(
     # wait for a call
     t0 = time.time()
     while acc._call is None:
-        time.sleep(.01)
+        time.sleep(0.01)
         # renewal condition
         if time.time() - t0 > UserAgent.renew_time:
             t0 = time.time()
@@ -72,20 +76,23 @@ def run_user_agent(
     # pj.PJSIP_INV_STATE_CONNECTING = 4
     # pj.PJSIP_INV_STATE_CONFIRMED = 5
     t0 = time.time()
-    while call_info.state != pj.PJSIP_INV_STATE_CONFIRMED and time.time() - t0 < UserAgent.max_inv_confirmed:
+    while (
+        call_info.state != pj.PJSIP_INV_STATE_CONFIRMED
+        and time.time() - t0 < UserAgent.max_inv_confirmed
+    ):
         print(call_info.state, call_info.stateText)
-        time.sleep(.01)
+        time.sleep(0.01)
     for i in range(10):
         print(call.getInfo().remoteUri)
         print(call.getInfo().remoteContact)
-        print('-' * 20)
+        print("-" * 20)
     # wait until media is consented
     t0 = time.time()
     while time.time() - t0 < UserAgent.max_media_consent:
         if call.media_changed:
             call.getInfo()
             break
-        time.sleep(.1)
+        time.sleep(0.1)
     call_id = call.getInfo().callIdString
     logger.info(f"{call_id = }")
     try:
@@ -115,8 +122,8 @@ def run_user_agent(
     call_api(metadata_dict)
     # close the things out
     print(metadata_dict)
-    print('deleting params...')
-    print('*' * 100)
+    print("deleting params...")
+    print("*" * 100)
     delete_pj_obj_safely(call)
     delete_pj_obj_safely(call_op_param)
     delete_pj_obj_safely(acc)
@@ -135,7 +142,7 @@ if __name__ == "__main__":
     parser.add_argument("--src-user", type=str, default="7501")
     parser.add_argument("--src-pass", type=str, default="pass7501")
     parser.add_argument("--dst-num", type=str, default="7600")
-    parser.add_argument("--always", action='store_true')
+    parser.add_argument("--always", action="store_true")
     args = parser.parse_args()
 
     while True:

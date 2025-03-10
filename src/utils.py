@@ -1,10 +1,17 @@
 # helper functions
 
 import logging
+import os
 import re
 
+import numpy as np
+import pjsua2 as pj
+import soundfile as sf
+from minio import Minio
+from redis import Redis
+
 from custom_callbacks import Call
-from config import UserAgent
+from config import ObjectStorage, UserAgent
 
 _logger = None
 
@@ -22,7 +29,7 @@ def get_logger(name: str = "AMD") -> logging.Logger:
 
 
 def get_call_id(remote_uri):
-    pattern = re.compile(r'<sip:[+]*(\d+)@')
+    pattern = re.compile(r"<sip:[+]*(\d+)@")
     match_pattern = pattern.search(remote_uri)
     try:
         return match_pattern.group(1)
