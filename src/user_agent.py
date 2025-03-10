@@ -99,16 +99,13 @@ def run_user_agent(
             "duration": 0,
         }
     metadata_dict["dialed_number"] = dialed_number
-    result = metadata_dict["result"]
-    match result:
-        case "transfer":
+    match metadata_dict["result"]:
+        case "AMD":
             call.xfer(f"sip:{operator_username}@{domain}", call_op_param)
-        case "hangup":
-            call.hangup(call_op_param)
-        case "other-side-is-silence":
+        case "non-AMD":
             call.hangup(call_op_param)
         case _:
-            print(" other cases: " + result)
+            call.hangup(call_op_param)
     # store audio and metadata in object storage
     store_wav(metadata_dict["call_id"] + ".wav")
     store_metadata(metadata_dict["call_id"] + ".json", metadata_dict)
