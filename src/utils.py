@@ -144,5 +144,8 @@ def call_api():
     call_api_non_blocking(CallbackAPIs.address, None, "text", "", lambda x: 1.0)
 
 
-def delete_pj_obj_safely():
-    pass
+def delete_pj_obj_safely(pj_obj):
+    try:
+        del pj_obj
+    except pj.Error:
+        pass
