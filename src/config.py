@@ -38,14 +38,14 @@ class ObjectStorage:
 @dataclass
 class UserAgent:
     max_inv_confirmed: float = 2
-    max_media_consent: float = 10.
+    max_media_consent: float = 10.0
     log_level: int = logging.DEBUG
     renew_time: float = 60
 
 
 @dataclass
 class Algorithm:
-    max_call_duration: float = 3.
+    max_call_duration: float = 3.0
     am_rft: float = 1 / 10
     asr_decoder_rtf: float = 1 / 10
     kws_rtf: float = 1 / 12
@@ -55,7 +55,7 @@ class Algorithm:
 
 @dataclass
 class CallbackAPIs:
-    IP: str = os.getenv("CALLBACK_API_IP")
+    address: str = os.getenv("CALLBACK_API_ADDRESS")
 
 
 @dataclass

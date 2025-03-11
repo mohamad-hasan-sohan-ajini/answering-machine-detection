@@ -1,5 +1,6 @@
 # helper functions
 
+import datetime
 import io
 import json
 import logging
@@ -8,12 +9,15 @@ import re
 
 import numpy as np
 import pjsua2 as pj
+import requests
 import soundfile as sf
 from minio import Minio
 from redis import Redis
 
 from custom_callbacks import Call
-from config import ObjectStorage, UserAgent
+from config import CallbackAPIs, ObjectStorage, UserAgent
+from database import db_session
+from models import AMDRecord
 
 _logger = None
 
@@ -116,8 +120,28 @@ def add_call_log_to_database(metadata_dict):
         logger.info("Cannot save metadata in database!")
 
 
+def call_api_non_blocking(url, data, text_or_json, default, timeout_estimator):
+    logger = get_logger()
+    timeout = timeout_estimator(data)
+    try:
+        response = requests.get(url, data=data, timeout=timeout)
+        if response.status_code != 200:
+            response = None
+    except requests.exceptions.Timeout:
+        response = None
+    if response is None:
+        logger.warning(f"{url} latency is high")
+        return default
+    if text_or_json == "text":
+        return response.text
+    else:
+        return response.json()
+
+
 def call_api():
-    pass
+    logger = get_logger()
+    logger.info("Calling API")
+    call_api_non_blocking(CallbackAPIs.address, None, "text", "", lambda x: 1.0)
 
 
 def delete_pj_obj_safely():
