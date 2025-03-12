@@ -68,7 +68,8 @@ def store_wav(file_path):
         logger.exception("Can not store wav file in object storage.")
 
 
-def store_metadata(file_path, metadata_dict):
+def store_metadata(metadata_dict):
+    file_path = metadata_dict["call_id"] + ".json"
     logger = get_logger()
     try:
         client = Minio(
