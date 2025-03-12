@@ -1,30 +1,33 @@
-from sqlalchemy import Column, Date, Float, Integer, String, Time
+from sqlalchemy import Column, Date, Float, Integer, Text, Time
 
+from config import Database
 from database import Base
 
 
-class CallRecord(Base):
-    __tablename__ = "AMDRecords"
-    row_number = Column(Integer, primary_key=True, autoincrement=True)
-    call_id = Column(String(40))
+class AMDRecord(Base):
+    __tablename__ = Database.table_name
+    call_id = Column(Text, primary_key=True)
+    dialed_number = Column(Text)
     call_date = Column(Date)
     call_time = Column(Time)
-    result = Column(String(80))
-    dialed_number = Column(String(20))
+    result_in_text = Column(Text)
     call_duration = Column(Float)
+    asr_result_in_text = Column(Text)
 
     def __init__(
         self,
         call_id,
+        dialed_number,
         call_date,
         call_time,
         result,
-        dialed_number,
         call_duration,
+        asr_result,
     ):
         self.call_id = call_id
+        self.dialed_number = dialed_number
         self.call_date = call_date
         self.call_time = call_time
-        self.result = result
-        self.dialed_number = dialed_number
+        self.result_in_text = result
         self.call_duration = call_duration
+        self.asr_result_in_text = asr_result

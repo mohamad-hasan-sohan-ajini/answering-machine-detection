@@ -3,9 +3,14 @@ from sqlalchemy.orm import scoped_session, sessionmaker, declarative_base
 
 from config import Database
 
-engine = create_engine(Database.url)
+url = f"postgresql+psycopg2://{Database.user}:{Database.password}@{Database.host}/{Database.db_name}"
+engine = create_engine(url)
 db_session = scoped_session(
-    sessionmaker(autocommit=False, autoflush=False, bind=engine),
+    sessionmaker(
+        autocommit=False,
+        autoflush=False,
+        bind=engine,
+    ),
 )
 Base = declarative_base()
 Base.query = db_session.query_property()
