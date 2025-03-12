@@ -23,6 +23,7 @@ class Database:
     password: str = os.getenv("DB_PASSWORD")
     host: str = os.getenv("DB_HOST")
     db_name: str = os.getenv("DB_NAME")
+    table_name: str = os.getenv("DB_TABLE")
     url: str = f"postgresql+psycopg2://{user}:{password}@{host}/{db_name}"
 
 
