@@ -46,7 +46,8 @@ class UserAgent:
 
 @dataclass
 class Algorithm:
-    max_call_duration: float = 3.0
+    max_call_duration: float = 2.5
+    zero_padding: int = 4000
     am_rft: float = 1 / 10
     asr_decoder_rtf: float = 1 / 10
     kws_rtf: float = 1 / 12
