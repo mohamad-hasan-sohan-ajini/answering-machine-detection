@@ -105,16 +105,16 @@ def add_call_log_to_database(metadata_dict):
         now_date = datetime.date(
             now_datetime.year, now_datetime.month, now_datetime.day
         )
-        call_record = AMDRecord(
+        amd_record = AMDRecord(
+            metadata_dict["dialed_number"],
             metadata_dict["call_id"],
             now_date,
             now_time,
             metadata_dict["result"],
-            metadata_dict["num_turns"],
-            metadata_dict["dialed_number"],
             metadata_dict["duration"],
+            metadata_dict["asr_result"],
         )
-        db_session.add(call_record)
+        db_session.add(amd_record)
         db_session.commit()
     except:
         logger.info("Cannot save metadata in database!")
