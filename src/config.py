@@ -13,8 +13,8 @@ is_production = False if os.getenv("UA_ENV") == "pc" else True
 class AIEndpoints:
     endpoint_delay: float = 0.5 if is_production else 0.0
     base_prediction_url: str = os.getenv("AI_SERVICES_ADDRESS")
-    am_endpoint: str = f"{base_prediction_url}/acoustic_model"
-    amd_kws_endpoint: str = f"{base_prediction_url}/kws_for_amd"
+    am_endpoint: str = f"{base_prediction_url}acoustic_model"
+    amd_kws_endpoint: str = f"{base_prediction_url}kws_for_amd"
 
 
 @dataclass
