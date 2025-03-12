@@ -100,6 +100,11 @@ def detect_answering_machine(call: Call) -> None:
     audio_buffer = np.concatenate((zero_buffer, audio_buffer, zero_buffer))
     data = convert_np_array_to_wav_file_bytes(audio_buffer, fs)
     sad_result = sad.handle([data])[0]
+    # ASR (non blocking)
+    # fetch history
+    # asr string matching
+    # audio pattern matching
+    return
 
 
 def store_wav(file_path):
