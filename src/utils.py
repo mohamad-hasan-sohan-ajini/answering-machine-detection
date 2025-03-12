@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import re
+import time
 
 import numpy as np
 import pjsua2 as pj
@@ -15,9 +16,10 @@ from minio import Minio
 from redis import Redis
 
 from custom_callbacks import Call
-from config import CallbackAPIs, ObjectStorage, UserAgent
+from config import Algorithm, CallbackAPIs, ObjectStorage, UserAgent
 from database import db_session
 from models import AMDRecord
+from sad.sad_model import SAD
 
 _logger = None
 
@@ -43,10 +45,61 @@ def get_call_id(remote_uri):
         return "NEW-PATTERN:" + remote_uri
 
 
+def parse_new_frames(appended_bytes, info):
+    data = np.frombuffer(appended_bytes, dtype=np.int16)
+    data = data[:: info.channels]
+    data = data / (2**15)
+    return data.astype(np.float32)
+
+
+def convert_np_array_to_wav_file_bytes(np_array, fs):
+    in_memory_file = io.BytesIO()
+    sf.write(in_memory_file, np_array, fs, format="WAV")
+    in_memory_file.seek(0)
+    return in_memory_file.read()
+
+
 def detect_answering_machine(call: Call) -> None:
     """Detect answering machine."""
     logger = get_logger()
-    pass
+    call_id = call.getInfo().callIdString
+    logger.info(f"Call ID: {call_id}")
+
+    # audio recorder
+    wav_writer = pj.AudioMediaRecorder()
+    wav_filename = call_id + ".wav"
+    wav_writer.createRecorder(wav_filename)
+    time.sleep(0.1)
+
+    # capture audio media
+    aud_med = call.getAudioMedia(0)
+    aud_med.startTransmit(wav_writer)
+
+    # wait till wav file is created
+    wav_info = None
+    while wav_info is None:
+        try:
+            wav_info = sf.info(wav_filename)
+            # assume wav subtype is PCM_16 with sampling rate of 16 kHz
+            wav_file = open(wav_filename, "rb")
+            wav_file.read(44)
+        except sf.LibsndfileError:
+            time.sleep(0.01)
+    fs = wav_info.samplerate
+
+    # each packet appended every 100-120 ms (jitter absolutely possible!)
+    sad = None
+    t0 = time.time()
+    while time.time() - t0 < Algorithm.max_call_duration:
+        if sad is None:
+            sad = SAD()
+        time.sleep(0.01)
+    appended_bytes = wav_file.read()
+    audio_buffer = parse_new_frames(appended_bytes, wav_info)
+    zero_buffer = np.zeros(Algorithm.zero_padding, dtype=np.float32)
+    audio_buffer = np.concatenate((zero_buffer, audio_buffer, zero_buffer))
+    data = convert_np_array_to_wav_file_bytes(audio_buffer, fs)
+    sad_result = sad.handle([data])[0]
 
 
 def store_wav(file_path):
