@@ -16,7 +16,7 @@ class AIEndpoints:
     am_endpoint: str = f"{base_prediction_url}acoustic_model"
     asr_decoder_endpoint: str = f"{base_prediction_url}asr_decoder"
     amd_kws_endpoint: str = f"{base_prediction_url}kws_for_amd"
-    timeout: float = 0.5
+    timeout: float = 1
 
 
 @dataclass
