@@ -22,7 +22,7 @@ def run_user_agent(
     domain,
     bot_username,
     bot_password,
-    operator_username,
+    dst_number,
 ):
     """Run the user agent."""
     # Log initial of the agent
@@ -109,7 +109,7 @@ def run_user_agent(
         }
     match metadata_dict["result"]:
         case "AMD":
-            call.xfer(f"sip:{operator_username}@{domain}", call_op_param)
+            call.xfer(f"sip:{dst_number}@{domain}", call_op_param)
         case "non-AMD":
             call.hangup(call_op_param)
         case _:
@@ -153,7 +153,7 @@ if __name__ == "__main__":
                 domain=args.domain,
                 bot_username=args.src_user,
                 bot_password=args.src_pass,
-                operator_username=args.dst_num,
+                dst_number=args.dst_num,
             )
         except Exception as E:
             logger.info("exception at run_user_agent")
