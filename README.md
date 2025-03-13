@@ -8,20 +8,20 @@ create user, database, and table:
 sudo -i -u postgres
 psql
 
-CREATE USER auser WITH ENCRYPTED PASSWORD 'apassword';
+CREATE USER auser WITH PASSWORD 'apassword';
 ALTER ROLE auser WITH LOGIN;
-GRANT ALL PRIVILEGES ON DATABASE mydatabase TO auser;
-
 CREATE DATABASE databasename;
 GRANT ALL PRIVILEGES ON DATABASE databasename TO auser;
+\c databasename;
 
 CREATE TABLE amd_table_0 (
     call_id TEXT PRIMARY KEY,
     dialed_number TEXT,
     call_date DATE,
     call_time TIME,
-    result_in_text TEXT,
+    result TEXT,
     call_duration FLOAT,
-    asr_result_in_text TEXT
+    asr_result TEXT
 );
+GRANT ALL PRIVILEGES ON TABLE amd_table_0 TO amd_agent;
 ```
