@@ -8,9 +8,13 @@ import pjsua2 as pj
 from config import UserAgent
 from custom_callbacks import Account
 from utils import (
+    add_call_log_to_database,
+    call_api,
     detect_answering_machine,
-    get_call_id,
+    delete_pj_obj_safely,
     get_logger,
+    store_wav,
+    store_metadata,
 )
 
 
@@ -67,8 +71,6 @@ def run_user_agent(
     call = acc._call
     call_op_param = acc._call_op_param
     call_info = call.getInfo()
-    remote_uri = call_info.remoteUri
-    dialed_number = get_call_id(remote_uri)
 
     # pj.PJSIP_INV_STATE_CALLING = 1
     # pj.PJSIP_INV_STATE_INCOMING = 2
@@ -105,7 +107,6 @@ def run_user_agent(
             "result": "exception",
             "duration": 0,
         }
-    metadata_dict["dialed_number"] = dialed_number
     match metadata_dict["result"]:
         case "AMD":
             call.xfer(f"sip:{operator_username}@{domain}", call_op_param)
@@ -136,11 +137,12 @@ def run_user_agent(
 
 
 if __name__ == "__main__":
+    logger = get_logger()
     # UA_ENV="pc" python awaiting_user_agent.py
     parser = ArgumentParser()
     parser.add_argument("--domain", type=str, default="192.168.1.124")
-    parser.add_argument("--src-user", type=str, default="7501")
-    parser.add_argument("--src-pass", type=str, default="pass7501")
+    parser.add_argument("--src-user", type=str, default="8501")
+    parser.add_argument("--src-pass", type=str, default="pass8501")
     parser.add_argument("--dst-num", type=str, default="7600")
     parser.add_argument("--always", action="store_true")
     args = parser.parse_args()
