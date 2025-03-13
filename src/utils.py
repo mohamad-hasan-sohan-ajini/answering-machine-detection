@@ -301,7 +301,9 @@ def add_call_log_to_database(metadata_dict):
             now_datetime.microsecond,
         )
         now_date = datetime.date(
-            now_datetime.year, now_datetime.month, now_datetime.day
+            now_datetime.year,
+            now_datetime.month,
+            now_datetime.day,
         )
         amd_record = AMDRecord(
             metadata_dict["dialed_number"],
