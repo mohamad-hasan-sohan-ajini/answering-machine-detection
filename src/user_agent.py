@@ -116,11 +116,11 @@ def run_user_agent(
             call.hangup(call_op_param)
     # store audio and metadata in object storage
     store_wav(metadata_dict["call_id"] + ".wav")
-    store_metadata(metadata_dict["call_id"] + ".json", metadata_dict)
+    store_metadata(metadata_dict)
     # log meta date in database
     add_call_log_to_database(metadata_dict)
     # also call proper callback API
-    call_api(metadata_dict)
+    call_api()
     # close the things out
     print(metadata_dict)
     print("deleting params...")
