@@ -7,6 +7,7 @@ import logging
 import os
 import re
 import time
+from multiprocessing import Process
 
 import numpy as np
 import pjsua2 as pj
@@ -16,7 +17,7 @@ from minio import Minio
 from redis import Redis
 
 from custom_callbacks import Call
-from config import Algorithm, CallbackAPIs, ObjectStorage, UserAgent
+from config import AIEndpoints, Algorithm, CallbackAPIs, ObjectStorage, UserAgent
 from database import db_session
 from models import AMDRecord
 from sad.sad_model import SAD
@@ -36,7 +37,7 @@ def get_logger() -> logging.Logger:
     return _logger
 
 
-def get_call_id(remote_uri):
+def get_number(remote_uri):
     pattern = re.compile(r"<sip:[+]*(\d+)@")
     match_pattern = pattern.search(remote_uri)
     try:
@@ -290,7 +291,7 @@ def store_metadata(metadata_dict):
 
 
 def add_call_log_to_database(metadata_dict):
-    logger = get_call_id
+    logger = get_logger()
     try:
         now_datetime = datetime.datetime.now()
         now_time = datetime.time(
@@ -317,9 +318,8 @@ def add_call_log_to_database(metadata_dict):
         logger.info("Cannot save metadata in database!")
 
 
-def call_api_non_blocking(url, data, text_or_json, default, timeout_estimator):
+def call_api_non_blocking(url, data, default, timeout):
     logger = get_logger()
-    timeout = timeout_estimator(data)
     try:
         response = requests.get(url, data=data, timeout=timeout)
         if response.status_code != 200:
@@ -327,9 +327,9 @@ def call_api_non_blocking(url, data, text_or_json, default, timeout_estimator):
     except requests.exceptions.Timeout:
         response = None
     if response is None:
-        logger.warning(f"{url} latency is high")
+        logger.warning(f"Latency for {url} is high!")
         return default
-    if text_or_json == "text":
+    if isinstance(default, str):
         return response.text
     else:
         return response.json()
@@ -338,7 +338,7 @@ def call_api_non_blocking(url, data, text_or_json, default, timeout_estimator):
 def call_api():
     logger = get_logger()
     logger.info("Calling API")
-    call_api_non_blocking(CallbackAPIs.address, None, "text", "", lambda x: 1.0)
+    call_api_non_blocking(CallbackAPIs.address, None, "", 1.0)
 
 
 def delete_pj_obj_safely(pj_obj):
