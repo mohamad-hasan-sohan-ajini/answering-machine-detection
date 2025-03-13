@@ -14,7 +14,9 @@ class AIEndpoints:
     endpoint_delay: float = 0.5 if is_production else 0.0
     base_prediction_url: str = os.getenv("AI_SERVICES_ADDRESS")
     am_endpoint: str = f"{base_prediction_url}acoustic_model"
+    asr_decoder_endpoint: str = f"{base_prediction_url}asr_decoder"
     amd_kws_endpoint: str = f"{base_prediction_url}kws_for_amd"
+    timeout: float = 0.5
 
 
 @dataclass
