@@ -209,6 +209,7 @@ def detect_answering_machine(call: Call) -> None:
         "call_id": call_id,
         "dialed_number": dialed_number,
         "result": "",
+        "duration": time.time() - t0,
     }
 
     # check if SAD detects any speech signal
@@ -216,7 +217,6 @@ def detect_answering_machine(call: Call) -> None:
         logger.warning("No speech detected!")
         metadata_dict["result"] = "non-AMD"
         metadata_dict["asr_result"]
-        metadata_dict["duration"] = time.time() - t0
         return metadata_dict
     start_sample = int(sad_result[0]["start"] * fs)
     end_sample = int(sad_result[-1]["end"] * fs)
