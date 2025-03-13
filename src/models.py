@@ -10,9 +10,9 @@ class AMDRecord(Base):
     dialed_number = Column(Text)
     call_date = Column(Date)
     call_time = Column(Time)
-    result_in_text = Column(Text)
+    result = Column(Text)
     call_duration = Column(Float)
-    asr_result_in_text = Column(Text)
+    asr_result = Column(Text)
 
     def __init__(
         self,
@@ -28,6 +28,6 @@ class AMDRecord(Base):
         self.dialed_number = dialed_number
         self.call_date = call_date
         self.call_time = call_time
-        self.result_in_text = result
+        self.result = result
         self.call_duration = call_duration
-        self.asr_result_in_text = asr_result
+        self.asr_result = asr_result
