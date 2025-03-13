@@ -59,6 +59,103 @@ def convert_np_array_to_wav_file_bytes(np_array, fs):
     return in_memory_file.read()
 
 
+def run_am_asr(data):
+    logger = get_logger()
+    # run am model
+    am_result = call_api_non_blocking(
+        AIEndpoints.am_endpoint,
+        data,
+        "",
+        AIEndpoints.timeout,
+    )
+    if am_result == "":
+        logger.warning("check acoustic model...")
+        return "", ""
+    else:
+        # run decoder algorithm
+        asr_result = call_api_non_blocking(
+            AIEndpoints.asr_decoder_endpoint,
+            am_result,
+            "",
+            AIEndpoints.timeout,
+        )
+        logger.info(f"@run_am_asr {asr_result = }")
+        return am_result, asr_result
+
+
+def lookahead_am_asr_pipeline(data, call_id):
+    # run am and asr
+    am_result, asr_result = run_am_asr(data)
+    # generate key for result
+    redis_key_postfix = f"{call_id}_{time.time()}"
+    am_redis_key = "am_" + redis_key_postfix
+    asr_redis_key = "asr_" + redis_key_postfix
+    # put result in redis
+    redis = Redis(
+        host=Algorithm.redis_host,
+        port=Algorithm.redis_port,
+        decode_responses=True,
+    )
+    redis.set(am_redis_key, am_result, ex=6000)
+    redis.set(asr_redis_key, asr_result, ex=6000)
+
+
+def spawn_background_am_asr(data, call_id):
+    logger = get_logger()
+    logger.info("spawn am + asr background process...")
+    p = Process(target=lookahead_am_asr_pipeline, args=(data, call_id))
+    p.start()
+    return p
+
+
+def recover_last_key(key_regex):
+    redis = Redis(
+        host=Algorithm.redis_host,
+        port=Algorithm.redis_port,
+        decode_responses=True,
+    )
+    keys = sorted(redis.keys(key_regex))
+    try:
+        key = keys[-1]
+    except IndexError:
+        key = None
+    if key is None:
+        return None, None
+    else:
+        return key, redis.get(key)
+
+
+def recover_am_asr(call_id):
+    logger = get_logger()
+    last_am_key, last_am_result = recover_last_key(f"am_{call_id}_*")
+    last_asr_key, last_asr_result = recover_last_key(f"asr_{call_id}_*")
+    if last_am_key is None or last_asr_key is None:
+        return None, "", ""
+    am_insertion_time = float(last_am_key.split("_")[-1])
+    asr_insertion_time = float(last_asr_key.split("_")[-1])
+    if am_insertion_time != asr_insertion_time:
+        logger.info("am and asr insertion time are different!")
+        return None, "", ""
+    return am_insertion_time, last_am_result, last_asr_result
+
+
+def get_amd_record(dialed_number):
+    logger = get_logger()
+    try:
+        amd_record = (
+            db_session.query(AMDRecord)
+            .filter_by(dialed_number=dialed_number)
+            .order_by(AMDRecord.call_date.desc(), AMDRecord.call_time.desc())
+            .first()
+        )
+        if amd_record is None:
+            return None
+        return amd_record
+    except:
+        logger.exception("Can not fetch AMD record from database.")
+        return None
+
+
 def detect_answering_machine(call: Call) -> None:
     """Detect answering machine."""
     logger = get_logger()
