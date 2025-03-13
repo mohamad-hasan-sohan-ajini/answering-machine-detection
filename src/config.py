@@ -5,6 +5,9 @@ import os
 from dataclasses import dataclass
 from typing import ClassVar
 
+from dotenv import load_dotenv
+
+load_dotenv()
 
 is_production = False if os.getenv("UA_ENV") == "pc" else True
 
