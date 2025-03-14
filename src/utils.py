@@ -236,11 +236,12 @@ def call_api_non_blocking(url, data, default, timeout):
     try:
         response = requests.get(url, data=data, timeout=timeout)
         if response.status_code != 200:
+            logger.warning(f"non-200 status code for {url}")
             response = None
     except requests.exceptions.Timeout:
+        logger.warning(f"Latency for {url} is high!")
         response = None
     if response is None:
-        logger.warning(f"Latency for {url} is high!")
         return default
     if isinstance(default, str):
         return response.text
