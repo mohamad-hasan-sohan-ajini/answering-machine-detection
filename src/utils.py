@@ -9,6 +9,7 @@ import re
 import time
 from multiprocessing import Process
 
+import grequests
 import numpy as np
 import pjsua2 as pj
 import requests
@@ -60,7 +61,7 @@ def convert_np_array_to_wav_file_bytes(np_array, fs):
     return in_memory_file.read()
 
 
-def run_am_asr(data):
+def run_am_asr_kws(data):
     logger = get_logger()
     # run am model
     am_result = call_api_non_blocking(
@@ -71,26 +72,30 @@ def run_am_asr(data):
     )
     if am_result == "":
         logger.warning("check acoustic model...")
-        return "", ""
-    else:
-        # run decoder algorithm
-        asr_result = call_api_non_blocking(
-            AIEndpoints.asr_decoder_endpoint,
-            am_result,
-            "",
-            AIEndpoints.timeout,
-        )
-        logger.info(f"@run_am_asr {asr_result = }")
-        return am_result, asr_result
+        return "", "", {}
+    # run decoder algorithms in parallel
+    urls = [
+        AIEndpoints.asr_decoder_endpoint,
+        AIEndpoints.amd_kws_endpoint,
+    ]
+    rs = (grequests.get(u, data=am_result, timeout=AIEndpoints.timeout) for u in urls)
+    asr_response, kws_response = grequests.map(rs)
+    asr_result = asr_response.text if asr_response.status_code == 200 else ""
+    kws_result = kws_response.text if kws_response.status_code == 200 else "{}"
+
+    logger.info(f"@run_am_asr_kws {asr_result = }")
+    logger.info(f"@run_am_asr_kws {kws_result = }")
+    return am_result, asr_result, kws_result
 
 
-def lookahead_am_asr_pipeline(data, call_id):
+def lookahead_am_asr_kws_pipeline(data, call_id):
     # run am and asr
-    am_result, asr_result = run_am_asr(data)
+    am_result, asr_result, kws_result = run_am_asr_kws(data)
     # generate key for result
     redis_key_postfix = f"{call_id}_{time.time()}"
     am_redis_key = "am_" + redis_key_postfix
     asr_redis_key = "asr_" + redis_key_postfix
+    kws_redis_key = "kws_" + redis_key_postfix
     # put result in redis
     redis = Redis(
         host=Algorithm.redis_host,
@@ -99,17 +104,18 @@ def lookahead_am_asr_pipeline(data, call_id):
     )
     redis.set(am_redis_key, am_result, ex=6000)
     redis.set(asr_redis_key, asr_result, ex=6000)
+    redis.set(kws_redis_key, kws_result, ex=6000)
 
 
-def spawn_background_am_asr(data, call_id):
+def spawn_background_am_asr_kws(data, call_id):
     logger = get_logger()
     logger.info("spawn am + asr background process...")
-    p = Process(target=lookahead_am_asr_pipeline, args=(data, call_id))
+    p = Process(target=lookahead_am_asr_kws_pipeline, args=(data, call_id))
     p.start()
     return p
 
 
-def recover_last_key(key_regex):
+def recover_last_key_and_result(key_regex):
     redis = Redis(
         host=Algorithm.redis_host,
         port=Algorithm.redis_port,
@@ -126,18 +132,13 @@ def recover_last_key(key_regex):
         return key, redis.get(key)
 
 
-def recover_am_asr(call_id):
-    logger = get_logger()
-    last_am_key, last_am_result = recover_last_key(f"am_{call_id}_*")
-    last_asr_key, last_asr_result = recover_last_key(f"asr_{call_id}_*")
-    if last_am_key is None or last_asr_key is None:
+def recover_am_asr_kws(call_id):
+    last_am_key, last_am_result = recover_last_key_and_result(f"am_{call_id}_*")
+    last_asr_key, last_asr_result = recover_last_key_and_result(f"asr_{call_id}_*")
+    last_kws_key, last_kws_result = recover_last_key_and_result(f"kws_{call_id}_*")
+    if last_am_key is None:
         return None, "", ""
-    am_insertion_time = float(last_am_key.split("_")[-1])
-    asr_insertion_time = float(last_asr_key.split("_")[-1])
-    if am_insertion_time != asr_insertion_time:
-        logger.info("am and asr insertion time are different!")
-        return None, "", ""
-    return am_insertion_time, last_am_result, last_asr_result
+    return last_am_result, last_asr_result, last_kws_result
 
 
 def get_amd_record(dialed_number):
