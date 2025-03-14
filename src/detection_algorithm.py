@@ -78,6 +78,7 @@ def detect_answering_machine(call: Call) -> None:
     }
 
     # check if SAD detects any speech signal
+    t1 = time.time()
     if len(sad_result) == 0:
         logger.warning("No speech detected!")
         metadata_dict["result"] = "non-AMD"
@@ -120,6 +121,9 @@ def detect_answering_machine(call: Call) -> None:
         metadata_dict["result"] = "AMD"
     else:
         metadata_dict["result"] = "non-AMD"
+    metadata_dict["process_duration"] = time.time() - t1
+    logger.warning(f"processing duration: {metadata_dict['process_duration']}")
+    logger.info(f"{metadata_dict['result'] = }")
 
     # log adn return
     logger.info(f"{metadata_dict = }")
