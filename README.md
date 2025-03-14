@@ -25,3 +25,10 @@ CREATE TABLE amd_table_0 (
 );
 GRANT ALL PRIVILEGES ON TABLE amd_table_0 TO amd_agent;
 ```
+
+
+To manually export environment variables:
+
+```
+export $(grep -v '^#' .env | xargs)
+```
