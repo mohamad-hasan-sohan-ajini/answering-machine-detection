@@ -1,5 +1,6 @@
 # answering machine detection algorithm
 
+import json
 import time
 
 import numpy as np
@@ -15,8 +16,8 @@ from utils import (
     get_logger,
     get_number,
     parse_new_frames,
-    recover_am_asr,
-    spawn_background_am_asr,
+    recover_am_asr_kws,
+    spawn_background_am_asr_kws,
 )
 
 
@@ -73,6 +74,7 @@ def detect_answering_machine(call: Call) -> None:
         "dialed_number": dialed_number,
         "result": "",
         "duration": time.time() - t0,
+        "sad_result": sad_result,
     }
 
     # check if SAD detects any speech signal
@@ -87,23 +89,38 @@ def detect_answering_machine(call: Call) -> None:
     data = convert_np_array_to_wav_file_bytes(audio_segment, fs)
 
     # ASR (non blocking)
-    process = spawn_background_am_asr(data, call_id)
+    process = spawn_background_am_asr_kws(data, call_id)
 
     # fetch history
     old_amd_record = get_amd_record(dialed_number)
+    logger.info(f"{old_amd_record.asr_result = }")
 
     # retrieve ASR result
     while process.is_alive():
         time.sleep(0.01)
-    am_insertion_time, am, asr_result = recover_am_asr(call_id)
+    am_result, asr_result, kws_result = recover_am_asr_kws(call_id)
+    kws_result = json.loads(kws_result)
+    logger.info(f"{asr_result = }")
+    metadata_dict["asr_result"] = asr_result
+    logger.info(f"{kws_result = }")
+    metadata_dict["kws_result"] = kws_result
 
     # asr string matching
-    metadata_dict["asr_result"] = asr_result
-    if old_amd_record and old_amd_record.asr_result == asr_result:
+    asr_repeat = old_amd_record and (old_amd_record.asr_result == asr_result)
+    logger.info(f"{asr_repeat = }")
+
+    # keyword spotting
+    kws_keyword = len(kws_result) > 0
+    logger.info(f"{kws_keyword = }")
+
+    # TODO: audio pattern matching
+
+    # ensemble of results
+    if asr_repeat or kws_keyword:
         metadata_dict["result"] = "AMD"
     else:
         metadata_dict["result"] = "non-AMD"
 
-    # TODO: keyword spotting
-    # TODO: audio pattern matching
+    # log adn return
+    logger.info(f"{metadata_dict = }")
     return metadata_dict
