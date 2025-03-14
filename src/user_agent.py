@@ -7,11 +7,11 @@ import pjsua2 as pj
 
 from config import UserAgent
 from custom_callbacks import Account
+from detection_algorithm import detect_answering_machine
 from utils import (
     add_call_log_to_database,
     call_api,
     delete_pj_obj_safely,
-    detect_answering_machine,
     get_logger,
     store_metadata,
     store_wav,
