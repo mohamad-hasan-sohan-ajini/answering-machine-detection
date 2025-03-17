@@ -26,8 +26,9 @@ def detect_answering_machine(call: Call) -> None:
     logger = get_logger()
     call_info = call.getInfo()
     call_id = call_info.callIdString
-    dialed_number = get_number(call_info.remoteUri)
     logger.info(f"Call ID: {call_id}")
+    dialed_number = get_number(call_info.remoteUri)
+    logger.info(f"Dialed number: {dialed_number}")
 
     # audio recorder
     wav_writer = pj.AudioMediaRecorder()
