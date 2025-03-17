@@ -95,7 +95,12 @@ def detect_answering_machine(call: Call) -> None:
 
     # fetch history
     old_amd_record = get_amd_record(dialed_number)
-    logger.info(f"{old_amd_record.asr_result = }")
+    try:
+        old_asr_result = old_amd_record.asr_result
+        logger.info(f"{old_asr_result = }")
+    except Exception as e:
+        logger.warning(f"{e = }")
+        old_asr_result = ""
 
     # retrieve ASR result
     while process.is_alive():
@@ -108,7 +113,7 @@ def detect_answering_machine(call: Call) -> None:
     metadata_dict["kws_result"] = kws_result
 
     # asr string matching
-    asr_repeat = old_amd_record and (old_amd_record.asr_result == asr_result)
+    asr_repeat = old_amd_record and (old_asr_result == asr_result)
     logger.info(f"{asr_repeat = }")
 
     # keyword spotting
