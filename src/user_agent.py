@@ -22,7 +22,8 @@ def run_user_agent(
     domain,
     bot_username,
     bot_password,
-    dst_number,
+    amd_dst,
+    non_amd_dst,
 ):
     """Run the user agent."""
     # Log initial of the agent
@@ -109,11 +110,11 @@ def run_user_agent(
         }
     match metadata_dict["result"]:
         case "AMD":
-            call.xfer(f"sip:{dst_number}@{domain}", call_op_param)
+            call.xfer(f"sip:{amd_dst}@{domain}", call_op_param)
         case "non-AMD":
-            call.xfer(f"sip:{int(dst_number)+1}@{domain}", call_op_param)
+            call.xfer(f"sip:{non_amd_dst}@{domain}", call_op_param)
         case _:
-            call.xfer(f"sip:{int(dst_number)+1}@{domain}", call_op_param)
+            call.xfer(f"sip:{non_amd_dst}@{domain}", call_op_param)
     # store audio and metadata in object storage
     store_wav(metadata_dict["call_id"] + ".wav")
     store_metadata(metadata_dict)
@@ -143,7 +144,8 @@ if __name__ == "__main__":
     parser.add_argument("--domain", type=str, default="192.168.1.124")
     parser.add_argument("--src-user", type=str, default="8501")
     parser.add_argument("--src-pass", type=str, default="pass8501")
-    parser.add_argument("--dst-num", type=str, default="7600")
+    parser.add_argument("--amd-dst", type=str, default="7600")
+    parser.add_argument("--non-amd-dst", type=str, default="7601")
     parser.add_argument("--always", action="store_true")
     args = parser.parse_args()
 
