@@ -119,17 +119,17 @@ def detect_answering_machine(call: Call) -> None:
     metadata_dict["kws_result"] = kws_result
 
     # asr string matching
-    asr_repeat = old_amd_record and (old_asr_result == asr_result)
+    asr_repeat = old_asr_result == asr_result
     logger.info(f"{asr_repeat = }")
 
     # keyword spotting
-    kws_keyword = len(kws_result) > 0
-    logger.info(f"{kws_keyword = }")
+    keywords_detected = len(kws_result) > 0
+    logger.info(f"{keywords_detected = }")
 
     # TODO: audio pattern matching
 
     # ensemble of results
-    if asr_repeat or kws_keyword:
+    if asr_repeat or keywords_detected:
         metadata_dict["result"] = "AMD"
     else:
         metadata_dict["result"] = "non-AMD"
