@@ -54,20 +54,26 @@ def detect_answering_machine(call: Call) -> None:
 
     # gather first few seconds of the call
     # Note: each packet appended every 100-120 ms (jitter absolutely possible!)
-    sad = None
-    t0 = time.time()
-    while time.time() - t0 < Algorithm.max_call_duration:
-        if sad is None:
-            sad = SAD()
-        time.sleep(0.01)
-
-    # process audio data
-    appended_bytes = wav_file.read()
-    audio_buffer = parse_new_frames(appended_bytes, wav_info)
+    sad = SAD()
     zero_buffer = np.zeros(Algorithm.zero_padding, dtype=np.float32)
-    audio_buffer = np.concatenate((zero_buffer, audio_buffer, zero_buffer))
-    data = convert_np_array_to_wav_file_bytes(audio_buffer, fs)
-    sad_result = sad.handle([data])[0]
+    t0 = time.time()
+    audio_buffer = zero_buffer.copy()
+    sad_result = []
+    while time.time() - t0 < Algorithm.max_call_duration:
+        appended_bytes = wav_file.read()
+        if len(appended_bytes) == 0:
+            time.sleep(0.01)
+            continue
+        new_buffer = parse_new_frames(appended_bytes, wav_info)
+        audio_buffer = np.concatenate([audio_buffer, new_buffer])
+        data = convert_np_array_to_wav_file_bytes(audio_buffer, fs)
+        sad_result = sad.handle([data])[0]
+        if len(sad_result):
+            audio_buffer_duration = audio_buffer.shape[0] / fs
+            tail_sil = audio_buffer_duration - sad_result[-1]["end"]
+            if tail_sil > Algorithm.max_tail_sil:
+                break
+        time.sleep(0.01)
 
     # create metadata dict
     metadata_dict = {
