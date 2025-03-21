@@ -24,7 +24,7 @@ class AudioMatching:
         self.key_duration = key_duration
         self.std_threshold = std_threshold
         self.logger = get_logger()
-        self.mel_spectrogram = torchaudio.transforms.MelSpectrogram(
+        self.transform = torchaudio.transforms.MelSpectrogram(
             sample_rate=sample_rate,
             n_fft=n_fft,
             hop_length=hop_length,
@@ -33,14 +33,14 @@ class AudioMatching:
 
     def compute_cross_correlation(
         self,
-        key_segment: np.ndarray,
-        query_segment: np.ndarray,
+        key_segment: torch.Tensor,
+        query_segment: torch.Tensor,
     ) -> bool:
         """Compute cross correlation between key and query segments.
 
         Args:
-            key_segment (np.ndarray): key segment of shape (1, Tk)
-            query_segment (np.ndarray): query segment of shape (1, Tq)
+            key_segment (torch.Tensor): key segment of shape (1, Tk)
+            query_segment (torch.Tensor): query segment of shape (1, Tq)
 
         Returns:
             bool: True if key segment is found in query segment.
@@ -60,13 +60,21 @@ class AudioMatching:
             self.logger.warning("key segment is too short")
             return False
         # compute mel spectrogram
-        mel_key = torch.log10(self.mel_spectrogram(key_segment) + 1).unsqueeze(0)
-        mel_query = torch.log10(self.mel_spectrogram(query_segment) + 1).unsqueeze(0)
+        mel_key = torch.log10(self.transform(key_segment) + 1).unsqueeze(0)
+        mel_query = torch.log10(self.transform(query_segment) + 1).unsqueeze(0)
         # Perform the convolution/cross correlation
-        cross_correlation = torch.nn.functional.conv2d(
-            mel_query,
-            mel_key,
-        ).squeeze()
+        cross_correlation = (
+            torch.nn.functional.conv2d(
+                mel_query,
+                mel_key,
+            )
+            .squeeze()
+            .numpy()
+        )
+        return cross_correlation
+
+    def decide_similarity(self, cross_correlation: torch.Tensor) -> bool:
+        """Decide if key segment is found in query segment."""
         # check if there is a match
         mean, std = cross_correlation.mean(), cross_correlation.std()
         self.logger.info(f"{mean = }\t{std = }, {cross_correlation.max() = }")
@@ -95,7 +103,8 @@ class AudioMatching:
             self.logger.warning("query segment is empty")
             return False
         # compute cross correlation
-        return self.compute_cross_correlation(key_segment, query_segment)
+        cross_correlation = self.compute_cross_correlation(key_segment, query_segment)
+        return self.decide_similarity(cross_correlation)
 
 
 if __name__ == "__main__":
@@ -125,5 +134,6 @@ if __name__ == "__main__":
         segment1.shape,
         audio2.shape,
     )
-    matching_result = audio_matching.compute_cross_correlation(segment1, audio2)
+    cross_correlation = audio_matching.compute_cross_correlation(segment1, audio2)
+    matching_result = audio_matching.decide_similarity(cross_correlation)
     print(f"{matching_result = }")
