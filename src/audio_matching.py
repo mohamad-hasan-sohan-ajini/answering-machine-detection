@@ -67,6 +67,7 @@ class AudioMatching:
         ).squeeze()
         # check if there is a match
         mean, std = cross_correlation.mean(), cross_correlation.std()
+        self.logger.info(f"{mean = }\t{std = }, {cross_correlation.max() = }")
         is_peak = cross_correlation > (mean + self.std_threshold * std)
         if sum(is_peak).item():
             self.logger.info("key segment found in query segment")
