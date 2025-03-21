@@ -74,3 +74,34 @@ class AudioMatching:
             return True
         self.logger.info("key segment not found in query segment")
         return False
+
+
+if __name__ == "__main__":
+    audio2_path = (
+        "../audio-pattern-matching/files/669a071b-520f-4dc1-8a43-1c7500a1e658-.wav"
+    )
+    audio1_path = (
+        "../audio-pattern-matching/files/43807aaf-17d7-4f14-9de6-fd82f80f0f39-.wav"
+    )
+
+    audio1, fs = torchaudio.load(audio1_path)
+    audio2, fs = torchaudio.load(audio2_path)
+
+    from sad.sad_model import SAD
+
+    sad = SAD()
+    sad_result1 = sad.handle([open(audio1_path, "rb").read()])[0]
+
+    audio_matching = AudioMatching()
+    segment1 = audio1[
+        :,
+        int(sad_result1[0]["start"] * audio_matching.sample_rate) : int(
+            sad_result1[-1]["end"] * audio_matching.sample_rate
+        ),
+    ]
+    print(
+        segment1.shape,
+        audio2.shape,
+    )
+    matching_result = audio_matching.compute_cross_correlation(segment1, audio2)
+    print(f"{matching_result = }")
