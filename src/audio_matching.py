@@ -1,3 +1,5 @@
+# Description: Audio matching class to match key audio segment in query audio segment.
+
 import numpy as np
 import torch
 import torchaudio
