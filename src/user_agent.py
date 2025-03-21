@@ -155,7 +155,8 @@ if __name__ == "__main__":
                 domain=args.domain,
                 bot_username=args.src_user,
                 bot_password=args.src_pass,
-                dst_number=args.dst_num,
+                amd_dst=args.amd_dst,
+                non_amd_dst=args.non_amd_dst,
             )
         except Exception as E:
             logger.info("exception at run_user_agent")
