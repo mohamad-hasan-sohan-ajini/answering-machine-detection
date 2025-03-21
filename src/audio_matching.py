@@ -4,7 +4,7 @@ import numpy as np
 import torch
 import torchaudio
 
-from utils import get_logger
+from utils import get_logger, retrieve_wav
 
 
 class AudioMatching:
@@ -76,6 +76,26 @@ class AudioMatching:
             return True
         self.logger.info("key segment not found in query segment")
         return False
+
+    def match_segments(self, key_np_array: np.ndarray, query_wav_obj: str) -> bool:
+        """Match key segment in query segment.
+
+        Args:
+            key_np_array (np.ndarray): key wav file numpy array ()
+            query_wav_obj (str): path to query wav file located in object storage
+
+        Returns:
+            bool: True if key segment is found in query segment.
+        """
+        # convert key_np_array to torch tencor
+        key_segment = torch.from_numpy(key_np_array).unsqueeze(0)
+        # retrieve segments
+        query_segment = retrieve_wav(query_wav_obj)
+        if query_segment.shape[0] == 0:
+            self.logger.warning("query segment is empty")
+            return False
+        # compute cross correlation
+        return self.compute_cross_correlation(key_segment, query_segment)
 
 
 if __name__ == "__main__":

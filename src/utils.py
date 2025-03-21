@@ -14,6 +14,8 @@ import numpy as np
 import pjsua2 as pj
 import requests
 import soundfile as sf
+import torch
+import torchaudio
 from minio import Minio
 from redis import Redis
 
@@ -177,6 +179,24 @@ def store_wav(file_path):
         logger.exception("Can not store wav file in object storage.")
 
 
+def retrieve_wav(obj_name):
+    logger = get_logger()
+    try:
+        client = Minio(
+            ObjectStorage.minio_url,
+            access_key=ObjectStorage.minio_access_key,
+            secret_key=ObjectStorage.minio_secret_key,
+            secure=False,
+        )
+        response = client.get_object(ObjectStorage.minio_wav_bucket_name, obj_name)
+        in_memory_wav_file = io.BytesIO(response.read())
+        wav_array, fs = torchaudio.load(in_memory_wav_file)
+    except:
+        logger.exception("Can not retrieve wav file in object storage.")
+        wav_array = torch.Tensor()
+    return wav_array
+
+
 def store_metadata(metadata_dict):
     file_path = metadata_dict["call_id"] + ".json"
     logger = get_logger()
@@ -228,7 +248,8 @@ def add_call_log_to_database(metadata_dict):
         )
         db_session.add(amd_record)
         db_session.commit()
-    except:
+    except Exception as e:
+        logger.warning(f"{e = }")
         logger.info("Cannot save metadata in database!")
 
 

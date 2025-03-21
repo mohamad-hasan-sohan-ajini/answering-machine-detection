@@ -7,6 +7,7 @@ import numpy as np
 import pjsua2 as pj
 import soundfile as sf
 
+from audio_matching import AudioMatching
 from config import Algorithm
 from custom_callbacks import Call
 from sad.sad_model import SAD
@@ -104,9 +105,12 @@ def detect_answering_machine(call: Call) -> None:
     try:
         old_asr_result = old_amd_record.asr_result
         logger.info(f"{old_asr_result = }")
+        old_wav_obj = old_amd_record.call_id + ".wav"
+        logger.info(f"{old_wav_obj = }")
     except Exception as e:
         logger.warning(f"{e = }")
         old_asr_result = ""
+        old_wav_obj = ""
 
     # retrieve ASR result
     while process.is_alive():
@@ -127,9 +131,12 @@ def detect_answering_machine(call: Call) -> None:
     logger.info(f"{keywords_detected = }")
 
     # TODO: audio pattern matching
+    audio_matching = AudioMatching()
+    matching_result = audio_matching.match_segments(audio_segment, old_wav_obj)
+    logger.info(f"{matching_result = }")
 
     # ensemble of results
-    if asr_repeat or keywords_detected:
+    if asr_repeat or keywords_detected or matching_result:
         metadata_dict["result"] = "AMD"
     else:
         metadata_dict["result"] = "non-AMD"

@@ -13,6 +13,7 @@ from utils import (
     call_api,
     delete_pj_obj_safely,
     get_logger,
+    get_number,
     store_metadata,
     store_wav,
 )
@@ -105,6 +106,7 @@ def run_user_agent(
         logger.info(E)
         metadata_dict = {
             "call_id": call_id,
+            "dialed_number": get_number(call_info.remoteUri),
             "result": "exception",
             "duration": 0,
         }
