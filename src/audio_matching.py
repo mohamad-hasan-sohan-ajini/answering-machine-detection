@@ -69,5 +69,7 @@ class AudioMatching:
         mean, std = cross_correlation.mean(), cross_correlation.std()
         is_peak = cross_correlation > (mean + self.std_threshold * std)
         if sum(is_peak).item():
+            self.logger.info("key segment found in query segment")
             return True
+        self.logger.info("key segment not found in query segment")
         return False
