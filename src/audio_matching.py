@@ -14,8 +14,8 @@ class AudioMatching:
         n_mels: int = 80,
         n_fft: int = 512,
         hop_length: int = 256,
-        key_duration: float = 0.5,
-        std_threshold: float = 3.0,
+        key_duration: float = 1.0,
+        std_threshold: float = 3.5,
     ):
         self.sample_rate = sample_rate
         self.n_mels = n_mels
@@ -31,7 +31,7 @@ class AudioMatching:
             n_mels=n_mels,
         )
 
-    def compute_cross_correlation(
+    def compute_diff(
         self,
         key_segment: torch.Tensor,
         query_segment: torch.Tensor,
@@ -41,48 +41,40 @@ class AudioMatching:
         Args:
             key_segment (torch.Tensor): key segment of shape (1, Tk)
             query_segment (torch.Tensor): query segment of shape (1, Tq)
+            Tk < Tq
 
         Returns:
             bool: True if key segment is found in query segment.
         """
         # check query segment length
         if query_segment.shape[1] < int(self.key_duration * self.sample_rate):
-            self.logger.warning("query segment is too short")
             return False
         # select center piece of key segment
         if key_segment.shape[1] > int(self.key_duration * self.sample_rate):
-            self.logger.info("select center piece of key segment")
             center = key_segment.shape[1] // 2
             start = center - int(self.key_duration * self.sample_rate) // 2
             end = center + int(self.key_duration * self.sample_rate) // 2
             key_segment = key_segment[:, start:end]
         else:
-            self.logger.warning("key segment is too short")
             return False
         # compute mel spectrogram
-        mel_key = torch.log10(self.transform(key_segment) + 1).unsqueeze(0)
-        mel_query = torch.log10(self.transform(query_segment) + 1).unsqueeze(0)
-        # Perform the convolution/cross correlation
-        cross_correlation = (
-            torch.nn.functional.conv2d(
-                mel_query,
-                mel_key,
-            )
-            .squeeze()
-            .numpy()
-        )
-        return cross_correlation
+        mel_key = torch.log10(self.transform(key_segment) + 1)
+        mel_query = torch.log10(self.transform(query_segment) + 1)
+        # Perform the difference
+        tk = mel_key.shape[2]
+        tq = mel_query.shape[2]
+        diff_list = [
+            (mel_query[:, :, t : t + tk] - mel_key).abs().mean() for t in range(tq - tk)
+        ]
+        return np.array(diff_list, dtype=np.float32)
 
-    def decide_similarity(self, cross_correlation: torch.Tensor) -> bool:
+    def decide_dissimilarity(self, diff: torch.Tensor) -> bool:
         """Decide if key segment is found in query segment."""
         # check if there is a match
-        mean, std = cross_correlation.mean(), cross_correlation.std()
-        self.logger.info(f"{mean = }\t{std = }, {cross_correlation.max() = }")
-        is_peak = cross_correlation > (mean + self.std_threshold * std)
-        if sum(is_peak).item():
-            self.logger.info("key segment found in query segment")
+        mean, std = diff.mean(), diff.std()
+        is_valley = diff < (mean - self.std_threshold * std)
+        if sum(is_valley).item():
             return True
-        self.logger.info("key segment not found in query segment")
         return False
 
     def match_segments(self, key_np_array: np.ndarray, query_wav_obj: str) -> bool:
@@ -103,16 +95,21 @@ class AudioMatching:
             self.logger.warning("query segment is empty")
             return False
         # compute cross correlation
-        cross_correlation = self.compute_cross_correlation(key_segment, query_segment)
-        return self.decide_similarity(cross_correlation)
+        cross_correlation = self.compute_diff(key_segment, query_segment)
+        return self.decide_dissimilarity(cross_correlation)
 
 
 if __name__ == "__main__":
+    # similar files
+    # 48551f19-81af-4c9d-bc31-1a97698bf2af-.wav
+    # 669a071b-520f-4dc1-8a43-1c7500a1e658-.wav
+    # 43807aaf-17d7-4f14-9de6-fd82f80f0f39.wav
+
     audio2_path = (
         "../audio-pattern-matching/files/669a071b-520f-4dc1-8a43-1c7500a1e658-.wav"
     )
     audio1_path = (
-        "../audio-pattern-matching/files/43807aaf-17d7-4f14-9de6-fd82f80f0f39-.wav"
+        "../audio-pattern-matching/files/48551f19-81af-4c9d-bc31-1a97698bf2af-.wav"
     )
 
     audio1, fs = torchaudio.load(audio1_path)
@@ -124,16 +121,16 @@ if __name__ == "__main__":
     sad_result1 = sad.handle([open(audio1_path, "rb").read()])[0]
 
     audio_matching = AudioMatching()
-    segment1 = audio1[
+    key_segment = audio1[
         :,
         int(sad_result1[0]["start"] * audio_matching.sample_rate) : int(
             sad_result1[-1]["end"] * audio_matching.sample_rate
         ),
     ]
     print(
-        segment1.shape,
+        key_segment.shape,
         audio2.shape,
     )
-    cross_correlation = audio_matching.compute_cross_correlation(segment1, audio2)
-    matching_result = audio_matching.decide_similarity(cross_correlation)
+    pattern_diff = audio_matching.compute_diff(key_segment, audio2)
+    matching_result = audio_matching.decide_dissimilarity(pattern_diff)
     print(f"{matching_result = }")
