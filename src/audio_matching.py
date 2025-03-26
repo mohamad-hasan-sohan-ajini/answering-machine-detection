@@ -17,6 +17,17 @@ class AudioMatching:
         key_duration: float = 1.0,
         std_threshold: float = 3.5,
     ):
+        """Audio matching class to match key audio segment in query audio segment.
+
+        Args:
+            sample_rate (int, optional): sample rate of audio. Defaults to 16000.
+            n_mels (int, optional): number of mel filters. Defaults to 80.
+            n_fft (int, optional): number of fft points. Defaults to 512.
+            hop_length (int, optional): hop length. Defaults to 256.
+            key_duration (float, optional): key duration in seconds. Defaults to 1.0.
+            std_threshold (float, optional): standard deviation threshold. Defaults to 3.5. Use up to 4 to be very
+                strict, or decrease to 2.5 to be more lenient.
+        """
         self.sample_rate = sample_rate
         self.n_mels = n_mels
         self.n_fft = n_fft
