@@ -73,6 +73,8 @@ def detect_answering_machine(call: Call) -> None:
             audio_buffer_duration = audio_buffer.shape[0] / fs
             tail_sil = audio_buffer_duration - sad_result[-1]["end"]
             if tail_sil > Algorithm.max_tail_sil:
+                logger.info("tail silence detected")
+                logger.info(f"{sad_result = }")
                 break
         time.sleep(0.01)
 
