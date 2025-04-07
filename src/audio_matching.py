@@ -112,15 +112,17 @@ class AudioMatching:
 
 if __name__ == "__main__":
     # similar files
-    # 48551f19-81af-4c9d-bc31-1a97698bf2af-.wav
-    # 669a071b-520f-4dc1-8a43-1c7500a1e658-.wav
-    # 43807aaf-17d7-4f14-9de6-fd82f80f0f39.wav
+    # ref1: 669a071b-520f-4dc1-8a43-1c7500a1e658-.wav
+    # ref2: 43807aaf-17d7-4f14-9de6-fd82f80f0f39.wav
+    # also sim: 48551f19-81af-4c9d-bc31-1a97698bf2af-.wav
+    # less sim: 82746b1b-cd5a-41fb-b86c-ac200db59398-.wav
+    # different files
 
     audio2_path = (
         "../audio-pattern-matching/files/669a071b-520f-4dc1-8a43-1c7500a1e658-.wav"
     )
     audio1_path = (
-        "../audio-pattern-matching/files/48551f19-81af-4c9d-bc31-1a97698bf2af-.wav"
+        "../audio-pattern-matching/files/82746b1b-cd5a-41fb-b86c-ac200db59398-.wav"
     )
 
     audio1, fs = torchaudio.load(audio1_path)
@@ -131,7 +133,7 @@ if __name__ == "__main__":
     sad = SAD()
     sad_result1 = sad.handle([open(audio1_path, "rb").read()])[0]
 
-    audio_matching = AudioMatching()
+    audio_matching = AudioMatching(std_threshold=2.0)
     key_segment = audio1[
         :,
         int(sad_result1[0]["start"] * audio_matching.sample_rate) : int(
