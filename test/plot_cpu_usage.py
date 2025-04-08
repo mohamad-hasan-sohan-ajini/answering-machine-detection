@@ -4,6 +4,10 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 
+# HOW TO USE:
+# 1. Run the CPU usage logging script to generate "cpu_log.txt": top -b -d 0.1 | grep "^%Cpu" >> cpu_log.txt
+# 2. Run this script to plot the CPU usage.
+
 # Initialize dictionary to store all CPU fields
 cpu_data = {
     "us": [],
