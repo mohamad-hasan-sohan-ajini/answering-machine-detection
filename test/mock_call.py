@@ -110,14 +110,25 @@ def call_amd_agent(
             pass
 
     print("*" * 100)
-    del call
-    del call_op_param
+    # del call
+    try:
+        del call
+    except:
+        pass
+    # del call_op_param
+    try:
+        del call_op_param
+    except:
+        pass
     try:
         del player
     except:
         pass
     # Destroy the library
-    ep.libDestroy()
+    try:
+        ep.libDestroy()
+    except:
+        pass
 
 
 if __name__ == "__main__":
