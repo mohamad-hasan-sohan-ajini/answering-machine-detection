@@ -146,6 +146,6 @@ def detect_answering_machine(call: Call) -> None:
     logger.warning(f"processing duration: {metadata_dict['process_duration']}")
     logger.info(f"{metadata_dict['result'] = }")
 
-    # log adn return
+    # log and return
     logger.info(f"{metadata_dict = }")
     return metadata_dict
