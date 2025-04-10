@@ -12,7 +12,10 @@ import numpy as np
 # Parse command-line arguments
 parser = ArgumentParser(description="Plot CPU usage from a log file.")
 parser.add_argument(
-    "--log-file", type=str, required=True, help="Path to the CPU log file."
+    "--log-file",
+    type=str,
+    required=True,
+    help="Path to the CPU log file.",
 )
 args = parser.parse_args()
 
