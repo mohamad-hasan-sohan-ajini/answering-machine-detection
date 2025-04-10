@@ -146,6 +146,7 @@ def call_amd_agent_wrapper(args_dict):
 
 
 if __name__ == "__main__":
+    # Usage Example: python mock_call.py --domain 127.0.0.1 --src-user-start 74001 --number-of-calls 1 --dst-num-start 85001 --playback-folder wavs
     parser = ArgumentParser()
     parser.add_argument("--domain", type=str, default="192.168.1.124")
     parser.add_argument("--src-user-start", type=int, default=7401)
