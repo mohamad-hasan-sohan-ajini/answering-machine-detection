@@ -19,8 +19,7 @@ class Call(pj.Call):
         self.state_changed = True
 
     def onCallMediaState(self, prm):
-        for i in range(10):
-            print("*" * 80)
+        print("media state changed")
 
     def getInfo(self):
         self.state_changed = False
@@ -112,7 +111,7 @@ def call_amd_agent(
         except:
             pass
 
-    print("*" * 100)
+    print("Delete pjsua objects")
     # del call
     try:
         del call
