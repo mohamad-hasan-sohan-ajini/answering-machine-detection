@@ -67,9 +67,13 @@ threshold = us_mean + us_std
 
 # Find start and end indices
 start = next((i for i, val in enumerate(us) if val > threshold), None)
+if start is None:
+    start = 0
 end = next(
     (i for i in reversed(range(len(us))) if us[i] < threshold and i > start), None
 )
+if end is None:
+    end = len(us) - 1
 
 # Check if valid window found
 if start is not None and end is not None and end > start:
