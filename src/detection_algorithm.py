@@ -13,6 +13,7 @@ from custom_callbacks import Call
 from sad.sad_model import SAD
 from utils import (
     convert_np_array_to_wav_file_bytes,
+    delete_pj_obj_safely,
     get_amd_record,
     get_logger,
     get_number,
@@ -132,10 +133,12 @@ def detect_answering_machine(call: Call) -> None:
     keywords_detected = len(kws_result) > 0
     logger.info(f"{keywords_detected = }")
 
-    # TODO: audio pattern matching
+    # audio pattern matching
     audio_matching = AudioMatching()
     matching_result = audio_matching.match_segments(audio_segment, old_wav_obj)
     logger.info(f"{matching_result = }")
+
+    # TODO: search keywords in ASR result
 
     # ensemble of results
     if asr_repeat or keywords_detected or matching_result:
