@@ -1,8 +1,9 @@
 # coding: utf-8
 import re
-import numpy as np
-import matplotlib.pyplot as plt
 from argparse import ArgumentParser
+
+import matplotlib.pyplot as plt
+import numpy as np
 
 # HOW TO USE:
 # 1. Run the CPU usage logging script to generate "cpu_log.txt": top -b -d 0.1 | grep "^%Cpu" >> cpu_log.txt
