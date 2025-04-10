@@ -1,12 +1,19 @@
 # coding: utf-8
 import re
-
 import numpy as np
 import matplotlib.pyplot as plt
+from argparse import ArgumentParser
 
 # HOW TO USE:
 # 1. Run the CPU usage logging script to generate "cpu_log.txt": top -b -d 0.1 | grep "^%Cpu" >> cpu_log.txt
-# 2. Run this script to plot the CPU usage.
+# 2. Run this script with the log file as an argument: python plot_cpu_usage.py --log-file cpu_log.txt
+
+# Parse command-line arguments
+parser = ArgumentParser(description="Plot CPU usage from a log file.")
+parser.add_argument(
+    "--log-file", type=str, required=True, help="Path to the CPU log file."
+)
+args = parser.parse_args()
 
 # Initialize dictionary to store all CPU fields
 cpu_data = {
@@ -21,7 +28,7 @@ cpu_data = {
 }
 
 # Read the file
-with open("cpu_log.txt", "r") as f:
+with open(args.log_file, "r") as f:
     for line in f:
         if line.startswith("%Cpu"):
             # Use regex to extract fields
