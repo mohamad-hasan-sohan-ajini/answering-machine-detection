@@ -114,12 +114,19 @@ def call_amd_agent(
             pass
 
     print("Delete pjsua objects")
-    # del call
+    try:
+        player.stopTransmit(aud_med)
+    except:
+        pass
+    try:
+        wav_writer = None
+        player = None
+    except:
+        pass
     try:
         del call
     except:
         pass
-    # del call_op_param
     try:
         del call_op_param
     except:
@@ -128,7 +135,6 @@ def call_amd_agent(
         del player
     except:
         pass
-    # Destroy the library
     try:
         ep.libDestroy()
     except:
