@@ -39,6 +39,8 @@ def call_amd_agent(
 
     # configure endpoint
     ep_cfg = pj.EpConfig()
+    ep_cfg.logConfig.level = 0
+    ep_cfg.logConfig.consoleLevel = 0
     ep.libInit(ep_cfg)
     ep.audDevManager().setNullDev()
 
