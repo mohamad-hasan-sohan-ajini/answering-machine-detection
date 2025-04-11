@@ -151,4 +151,9 @@ def detect_answering_machine(call: Call) -> None:
 
     # log and return
     logger.info(f"{metadata_dict = }")
+    # delete pjsua objects
+    wav_writer.stopTransmit()
+    delete_pj_obj_safely(wav_writer)
+    delete_pj_obj_safely(aud_med)
+    logger.info("Return to UA")
     return metadata_dict
