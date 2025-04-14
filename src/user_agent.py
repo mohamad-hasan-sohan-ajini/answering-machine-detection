@@ -128,6 +128,7 @@ def run_user_agent(
     print(metadata_dict)
     print("deleting params...")
     print("*" * 100)
+    delete_pj_obj_safely(call_info)
     delete_pj_obj_safely(call)
     delete_pj_obj_safely(call_op_param)
     delete_pj_obj_safely(acc)

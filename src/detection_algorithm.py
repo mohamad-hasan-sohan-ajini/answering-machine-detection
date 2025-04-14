@@ -77,7 +77,11 @@ def detect_answering_machine(call: Call) -> None:
                 logger.info("tail silence detected")
                 logger.info(f"{sad_result = }")
                 break
-        time.sleep(0.01)
+            else:
+                # rational sleep
+                time.sleep(0.1)
+                continue
+        time.sleep(0.2)
 
     # create metadata dict
     metadata_dict = {
