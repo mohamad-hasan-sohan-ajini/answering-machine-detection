@@ -58,6 +58,8 @@ class Algorithm:
     kws_rtf: float = 1 / 12
     redis_host: str = os.getenv("REDIS_HOST")
     redis_port: str = os.getenv("REDIS_PORT")
+    receiving_active_segment_sleep: float = 0.3
+    receiving_silent_segment_sleep: float = 3.0
 
 
 @dataclass

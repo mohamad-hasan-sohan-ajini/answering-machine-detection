@@ -61,6 +61,7 @@ def detect_answering_machine(call: Call) -> None:
     t0 = time.time()
     audio_buffer = zero_buffer.copy()
     sad_result = []
+    time.sleep(Algorithm.receiving_silent_segment_sleep)
     while time.time() - t0 < Algorithm.max_call_duration:
         appended_bytes = wav_file.read()
         if len(appended_bytes) == 0:
@@ -78,10 +79,11 @@ def detect_answering_machine(call: Call) -> None:
                 logger.info(f"{sad_result = }")
                 break
             else:
-                # rational sleep
-                time.sleep(0.1)
+                # receiving segment
+                time.sleep(Algorithm.receiving_active_segment_sleep)
                 continue
-        time.sleep(0.2)
+        else:
+            time.sleep(Algorithm.receiving_silent_segment_sleep)
 
     # create metadata dict
     metadata_dict = {
