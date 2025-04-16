@@ -12,13 +12,14 @@ from config import Algorithm
 from custom_callbacks import Call
 from sad.sad_model import SAD
 from utils import (
+    aggregate_kws_results,
     convert_np_array_to_wav_file_bytes,
     delete_pj_obj_safely,
     get_amd_record,
     get_logger,
     get_number,
     parse_new_frames,
-    recover_am_asr_kws,
+    recover_asr_kws_results,
     spawn_background_am_asr_kws,
 )
 
@@ -62,6 +63,7 @@ def detect_answering_machine(call: Call) -> None:
     audio_buffer = zero_buffer.copy()
     sad_result = []
     time.sleep(Algorithm.receiving_silent_segment_sleep)
+    process_list = []
     while time.time() - t0 < Algorithm.max_call_duration:
         appended_bytes = wav_file.read()
         if len(appended_bytes) == 0:
@@ -75,9 +77,26 @@ def detect_answering_machine(call: Call) -> None:
             audio_buffer_duration = audio_buffer.shape[0] / fs
             tail_sil = audio_buffer_duration - sad_result[-1]["end"]
             if tail_sil > Algorithm.max_tail_sil:
+                start_sample = int(sad_result[0]["start"] * fs)
+                end_sample = int(sad_result[-1]["end"] * fs)
+                audio_segment = audio_buffer[start_sample:end_sample]
                 logger.info("tail silence detected")
-                logger.info(f"{sad_result = }")
                 break
+            elif tail_sil > Algorithm.lookahead_sil:
+                start_sample = int(sad_result[0]["start"] * fs)
+                end_sample = int(sad_result[-1]["end"] * fs)
+                audio_segment = audio_buffer[start_sample:end_sample]
+                data = convert_np_array_to_wav_file_bytes(audio_segment, fs)
+                segment_number = len(process_list)
+                process_list.append(
+                    spawn_background_am_asr_kws(
+                        data,
+                        call_id,
+                        segment_number,
+                    )
+                )
+                audio_buffer = zero_buffer.copy()
+                time.sleep(Algorithm.receiving_silent_segment_sleep)
             else:
                 # receiving segment
                 time.sleep(Algorithm.receiving_active_segment_sleep)
@@ -94,21 +113,6 @@ def detect_answering_machine(call: Call) -> None:
         "sad_result": sad_result,
     }
 
-    # check if SAD detects any speech signal
-    t1 = time.time()
-    if len(sad_result) == 0:
-        logger.warning("No speech detected!")
-        metadata_dict["result"] = "non-AMD"
-        metadata_dict["asr_result"]
-        return metadata_dict
-    start_sample = int(sad_result[0]["start"] * fs)
-    end_sample = int(sad_result[-1]["end"] * fs)
-    audio_segment = audio_buffer[start_sample:end_sample]
-    data = convert_np_array_to_wav_file_bytes(audio_segment, fs)
-
-    # ASR (non blocking)
-    process = spawn_background_am_asr_kws(data, call_id)
-
     # fetch history
     old_amd_record = get_amd_record(dialed_number)
     try:
@@ -122,10 +126,14 @@ def detect_answering_machine(call: Call) -> None:
         old_wav_obj = ""
 
     # retrieve ASR result
-    while process.is_alive():
-        time.sleep(0.01)
-    am_result, asr_result, kws_result = recover_am_asr_kws(call_id)
-    kws_result = json.loads(kws_result)
+    t1 = time.time()
+    while any([process.is_alive() for process in process_list]):
+        time.sleep(0.1)
+    process_duration = time.time() - t1
+    asr_segment_results, kws_segment_results = recover_asr_kws_results(call_id)
+    asr_result = " ".join(asr_segment_results)
+    kws_result = aggregate_kws_results(kws_segment_results)
+
     logger.info(f"{asr_result = }")
     metadata_dict["asr_result"] = asr_result
     logger.info(f"{kws_result = }")
@@ -151,14 +159,14 @@ def detect_answering_machine(call: Call) -> None:
         metadata_dict["result"] = "AMD"
     else:
         metadata_dict["result"] = "non-AMD"
-    metadata_dict["process_duration"] = time.time() - t1
-    logger.warning(f"processing duration: {metadata_dict['process_duration']}")
+    metadata_dict["process_duration"] = process_duration
+    logger.warning(f"{process_duration = }")
     logger.info(f"{metadata_dict['result'] = }")
 
     # log and return
     logger.info(f"{metadata_dict = }")
     # delete pjsua objects
-    wav_writer.stopTransmit()
+    aud_med.stopTransmit(wav_writer)
     delete_pj_obj_safely(wav_writer)
     delete_pj_obj_safely(aud_med)
     logger.info("Return to UA")
