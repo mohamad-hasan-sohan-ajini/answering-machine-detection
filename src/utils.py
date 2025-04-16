@@ -109,15 +109,18 @@ def lookahead_am_asr_kws_pipeline(data, call_id):
     redis.set(kws_redis_key, kws_result, ex=6000)
 
 
-def spawn_background_am_asr_kws(data, call_id):
+def spawn_background_am_asr_kws(data, call_id, segment_number):
     logger = get_logger()
     logger.info("spawn am + asr background process...")
-    p = Process(target=lookahead_am_asr_kws_pipeline, args=(data, call_id))
+    p = Process(
+        target=lookahead_am_asr_kws_pipeline,
+        args=(data, call_id, segment_number),
+    )
     p.start()
     return p
 
 
-def recover_last_key_and_result(key_regex):
+def recover_keys_and_results(key_regex):
     redis = Redis(
         host=Algorithm.redis_host,
         port=Algorithm.redis_port,
@@ -129,18 +132,17 @@ def recover_last_key_and_result(key_regex):
     except IndexError:
         key = None
     if key is None:
-        return None, None
+        return [], []
     else:
-        return key, redis.get(key)
+        return keys, [redis.get(key) for key in keys]
 
 
-def recover_am_asr_kws(call_id):
-    last_am_key, last_am_result = recover_last_key_and_result(f"am_{call_id}_*")
-    last_asr_key, last_asr_result = recover_last_key_and_result(f"asr_{call_id}_*")
-    last_kws_key, last_kws_result = recover_last_key_and_result(f"kws_{call_id}_*")
-    if last_am_key is None:
-        return None, "", ""
-    return last_am_result, last_asr_result, last_kws_result
+def recover_asr_kws_results(call_id):
+    asr_keys, asr_results = recover_keys_and_results(f"asr_{call_id}_*")
+    _, kws_results = recover_keys_and_results(f"kws_{call_id}_*")
+    if asr_keys:
+        return asr_results, kws_results
+    return [], []
 
 
 def get_amd_record(dialed_number):
