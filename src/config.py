@@ -52,7 +52,8 @@ class UserAgent:
 class Algorithm:
     max_call_duration: float = 15.0
     zero_padding: int = 4000
-    max_tail_sil: float = 0.7
+    max_tail_sil: float = 1.5
+    lookahead_sil: float = 0.7
     am_rft: float = 1 / 10
     asr_decoder_rtf: float = 1 / 10
     kws_rtf: float = 1 / 12
