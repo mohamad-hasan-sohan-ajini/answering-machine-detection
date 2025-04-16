@@ -7,6 +7,7 @@ import logging
 import os
 import re
 import time
+from collections import defaultdict
 from multiprocessing import Process
 
 import grequests
@@ -284,3 +285,12 @@ def delete_pj_obj_safely(pj_obj):
         del pj_obj
     except pj.Error:
         pass
+
+
+def aggregate_kws_results(kws_segment_results):
+    kws_segment_results = [json.loads(kws_result) for kws_result in kws_segment_results]
+    result = defaultdict(list)
+    for kws_segment_result in kws_segment_results:
+        for key, value in kws_segment_result.items():
+            result[key].extend(value)
+    return result
