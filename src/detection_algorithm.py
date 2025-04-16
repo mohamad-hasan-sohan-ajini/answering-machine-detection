@@ -67,6 +67,7 @@ def detect_answering_machine(call: Call) -> None:
     while time.time() - t0 < Algorithm.max_call_duration:
         appended_bytes = wav_file.read()
         if len(appended_bytes) == 0:
+            logger.info("Pooling for audio data...")
             time.sleep(0.01)
             continue
         new_buffer = parse_new_frames(appended_bytes, wav_info)
@@ -77,32 +78,31 @@ def detect_answering_machine(call: Call) -> None:
             audio_buffer_duration = audio_buffer.shape[0] / fs
             tail_sil = audio_buffer_duration - sad_result[-1]["end"]
             if tail_sil > Algorithm.max_tail_sil:
-                start_sample = int(sad_result[0]["start"] * fs)
-                end_sample = int(sad_result[-1]["end"] * fs)
-                audio_segment = audio_buffer[start_sample:end_sample]
-                logger.info("tail silence detected")
+                logger.info("Silenced for a long time...")
                 break
             elif tail_sil > Algorithm.lookahead_sil:
-                start_sample = int(sad_result[0]["start"] * fs)
-                end_sample = int(sad_result[-1]["end"] * fs)
-                audio_segment = audio_buffer[start_sample:end_sample]
-                data = convert_np_array_to_wav_file_bytes(audio_segment, fs)
-                segment_number = len(process_list)
-                process_list.append(
-                    spawn_background_am_asr_kws(
-                        data,
-                        call_id,
-                        segment_number,
-                    )
-                )
-                audio_buffer = zero_buffer.copy()
+                # receiving segment
+                logger.info(f"Silenced for a short time...")
                 time.sleep(Algorithm.receiving_silent_segment_sleep)
             else:
                 # receiving segment
+                logger.info(f"Receiving segment...")
                 time.sleep(Algorithm.receiving_active_segment_sleep)
-                continue
         else:
+            logger.info("No activity detected yet! Going to a long sleep")
             time.sleep(Algorithm.receiving_silent_segment_sleep)
+
+    # spawn processes to process segments
+    logger.info(f"{len(sad_result)} segments are detected")
+    logger.info(f"{sad_result = }")
+    for segment in sad_result:
+        start_sample = int(segment["start"] * fs)
+        end_sample = int(segment["end"] * fs)
+        logger.info(f"Audio segment info.: {start_sample = }, {end_sample = }")
+        audio_segment = audio_buffer[start_sample:end_sample]
+        data = convert_np_array_to_wav_file_bytes(audio_segment, fs)
+        # spawn ASR and KWS processes
+        process_list.append(spawn_background_am_asr_kws(data, call_id, dialed_number))
 
     # create metadata dict
     metadata_dict = {
