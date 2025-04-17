@@ -8,7 +8,7 @@ import pjsua2 as pj
 import soundfile as sf
 
 from audio_matching import AudioMatching
-from config import Algorithm
+from config import Algorithm, am_keywords
 from custom_callbacks import Call
 from sad.sad_model import SAD
 from utils import (
@@ -144,6 +144,7 @@ def detect_answering_machine(call: Call) -> None:
     logger.info(f"{asr_repeat = }")
 
     # keyword spotting
+    # TODO: filter kws result
     keywords_detected = len(kws_result) > 0
     logger.info(f"{keywords_detected = }")
 
@@ -152,10 +153,11 @@ def detect_answering_machine(call: Call) -> None:
     matching_result = audio_matching.match_segments(audio_segment, old_wav_obj)
     logger.info(f"{matching_result = }")
 
-    # TODO: search keywords in ASR result
+    # search keywords in ASR result
+    kw_in_asr_result = any([keyword in asr_result for keyword in am_keywords])
 
     # ensemble of results
-    if asr_repeat or keywords_detected or matching_result:
+    if asr_repeat or keywords_detected or matching_result or kw_in_asr_result:
         metadata_dict["result"] = "AMD"
     else:
         metadata_dict["result"] = "non-AMD"
