@@ -95,14 +95,14 @@ def detect_answering_machine(call: Call) -> None:
     # spawn processes to process segments
     logger.info(f"{len(sad_result)} segments are detected")
     logger.info(f"{sad_result = }")
-    for segment in sad_result:
+    for i, segment in enumerate(sad_result):
         start_sample = int(segment["start"] * fs)
         end_sample = int(segment["end"] * fs)
         logger.info(f"Audio segment info.: {start_sample = }, {end_sample = }")
         audio_segment = audio_buffer[start_sample:end_sample]
         data = convert_np_array_to_wav_file_bytes(audio_segment, fs)
         # spawn ASR and KWS processes
-        process_list.append(spawn_background_am_asr_kws(data, call_id, dialed_number))
+        process_list.append(spawn_background_am_asr_kws(data, call_id, i))
 
     # create metadata dict
     metadata_dict = {
