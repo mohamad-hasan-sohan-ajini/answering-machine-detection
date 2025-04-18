@@ -83,6 +83,16 @@ def detect_answering_machine(call: Call) -> None:
             elif tail_sil > Algorithm.lookahead_sil:
                 # receiving segment
                 logger.info(f"Silenced for a short time...")
+                start_sample = int(sad_result[0]["start"] * fs)
+                end_sample = int(sad_result[-1]["end"] * fs)
+                audio_segment = audio_buffer[start_sample:end_sample]
+                data = convert_np_array_to_wav_file_bytes(audio_segment, fs)
+                # spawn ASR and KWS processes
+                segment_number = len(process_list)
+                process = spawn_background_am_asr_kws(data, call_id, segment_number)
+                process_list.append(process)
+                # reset audio buffer
+                audio_buffer = zero_buffer.copy()
                 time.sleep(Algorithm.receiving_silent_segment_sleep)
             else:
                 # receiving segment
