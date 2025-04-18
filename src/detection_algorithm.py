@@ -68,7 +68,7 @@ def detect_answering_machine(call: Call) -> None:
         appended_bytes = wav_file.read()
         if len(appended_bytes) == 0:
             logger.info("Pooling for audio data...")
-            time.sleep(0.01)
+            time.sleep(Algorithm.chunk_interval)
             continue
         new_buffer = parse_new_frames(appended_bytes, wav_info)
         audio_buffer = np.concatenate([audio_buffer, new_buffer])

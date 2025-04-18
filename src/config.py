@@ -50,6 +50,7 @@ class UserAgent:
 
 @dataclass
 class Algorithm:
+    chunk_interval: float = 0.1
     max_call_duration: float = 15.0
     zero_padding: int = 4000
     max_tail_sil: float = 1.5
