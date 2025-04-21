@@ -94,7 +94,7 @@ def run_am_asr_kws(data):
 def lookahead_am_asr_kws_pipeline(data, call_id, segment_number):
     # run am and asr
     am_result, asr_result, kws_result = run_am_asr_kws(data)
-    # generate key for result
+    # generate key for result: [am|asr|kws] + call_id + segment_number + time
     redis_key_postfix = f"{call_id}_{segment_number}_{time.time()}"
     am_redis_key = "am_" + redis_key_postfix
     asr_redis_key = "asr_" + redis_key_postfix
