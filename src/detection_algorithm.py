@@ -75,7 +75,13 @@ def detect_answering_machine(call: Call) -> None:
                 _, kws_result = recover_keys_and_results(f"kws_{call_id}_{index}_*")
                 kws_result = json.loads(kws_result[0])
                 if len(kws_result) > 0:
-                    logger.info(f"Early AM detection")
+                    logger.info(f"Early AM detection @KWS")
+                    break_while = True
+                    break
+                _, asr_result = recover_keys_and_results(f"asr_{call_id}_{index}_*")
+                kw_in_asr_result = any([kw in asr_result for kw in am_keywords])
+                if kw_in_asr_result:
+                    logger.info(f"Early AM detection @ASR")
                     break_while = True
                     break
         if break_while:
