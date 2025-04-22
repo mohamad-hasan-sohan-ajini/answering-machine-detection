@@ -19,8 +19,16 @@ import torch
 import torchaudio
 from minio import Minio
 from redis import Redis
+from sqlalchemy import text
 
-from config import AIEndpoints, Algorithm, CallbackAPIs, ObjectStorage, UserAgent
+from config import (
+    AIEndpoints,
+    Algorithm,
+    CallbackAPIs,
+    Database,
+    ObjectStorage,
+    UserAgent,
+)
 from custom_callbacks import Call
 from database import db_session
 from models import AMDRecord
@@ -149,6 +157,7 @@ def recover_asr_kws_results(call_id):
 def get_amd_record(dialed_number):
     logger = get_logger()
     try:
+        db_session.execute(text(f"SET LOCAL statement_timeout TO {Database.timeout}"))
         amd_record = (
             db_session.query(AMDRecord)
             .filter_by(dialed_number=dialed_number)
