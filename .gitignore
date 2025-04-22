@@ -173,3 +173,5 @@ cython_debug/
 # ignore project specific files
 *.wav
 *tmp*
+*.png
+*.txt
