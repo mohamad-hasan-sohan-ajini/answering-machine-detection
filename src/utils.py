@@ -29,10 +29,8 @@ from config import (
     ObjectStorage,
     UserAgent,
 )
-from custom_callbacks import Call
 from database import db_session
 from models import AMDRecord
-from sad.sad_model import SAD
 
 _logger = None
 
