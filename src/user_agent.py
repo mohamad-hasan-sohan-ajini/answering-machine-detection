@@ -116,7 +116,7 @@ def run_user_agent(
         case "non-AMD":
             call.xfer(f"sip:{non_amd_dst}@{domain}", call_op_param)
         case _:
-            call.hangup()
+            call.hangup(call_op_param)
     # store audio and metadata in object storage
     store_wav(metadata_dict["call_id"] + ".wav")
     store_metadata(metadata_dict)

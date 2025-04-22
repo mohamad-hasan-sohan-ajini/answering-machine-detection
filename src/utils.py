@@ -19,8 +19,16 @@ import torch
 import torchaudio
 from minio import Minio
 from redis import Redis
+from sqlalchemy import text
 
-from config import AIEndpoints, Algorithm, CallbackAPIs, ObjectStorage, UserAgent
+from config import (
+    AIEndpoints,
+    Algorithm,
+    CallbackAPIs,
+    Database,
+    ObjectStorage,
+    UserAgent,
+)
 from custom_callbacks import Call
 from database import db_session
 from models import AMDRecord
@@ -94,7 +102,7 @@ def run_am_asr_kws(data):
 def lookahead_am_asr_kws_pipeline(data, call_id, segment_number):
     # run am and asr
     am_result, asr_result, kws_result = run_am_asr_kws(data)
-    # generate key for result
+    # generate key for result: [am|asr|kws] + call_id + segment_number + time
     redis_key_postfix = f"{call_id}_{segment_number}_{time.time()}"
     am_redis_key = "am_" + redis_key_postfix
     asr_redis_key = "asr_" + redis_key_postfix
@@ -149,6 +157,7 @@ def recover_asr_kws_results(call_id):
 def get_amd_record(dialed_number):
     logger = get_logger()
     try:
+        db_session.execute(text(f"SET LOCAL statement_timeout TO {Database.timeout}"))
         amd_record = (
             db_session.query(AMDRecord)
             .filter_by(dialed_number=dialed_number)

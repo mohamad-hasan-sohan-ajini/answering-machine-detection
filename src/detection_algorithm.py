@@ -20,6 +20,7 @@ from utils import (
     get_number,
     parse_new_frames,
     recover_asr_kws_results,
+    recover_keys_and_results,
     spawn_background_am_asr_kws,
 )
 
@@ -64,45 +65,64 @@ def detect_answering_machine(call: Call) -> None:
     sad_result = []
     time.sleep(Algorithm.receiving_silent_segment_sleep)
     process_list = []
+    break_while = False
     while time.time() - t0 < Algorithm.max_call_duration:
+        # check process list for early AM detection
+        logger.info(f"process list check...")
+        for index, process in enumerate(process_list):
+            logger.info(f"Process {process.pid} is alive: {process.is_alive()}")
+            if not process.is_alive():
+                _, kws_result = recover_keys_and_results(f"kws_{call_id}_{index}_*")
+                kws_result = json.loads(kws_result[0])
+                if len(kws_result) > 0:
+                    logger.info(f"Early AM detection @KWS")
+                    break_while = True
+                    break
+                _, asr_result = recover_keys_and_results(f"asr_{call_id}_{index}_*")
+                kw_in_asr_result = any([kw in asr_result for kw in am_keywords])
+                if kw_in_asr_result:
+                    logger.info(f"Early AM detection @ASR")
+                    break_while = True
+                    break
+        if break_while:
+            break
+        # read new segments
         appended_bytes = wav_file.read()
         if len(appended_bytes) == 0:
             logger.info("Pooling for audio data...")
-            time.sleep(0.01)
+            time.sleep(Algorithm.chunk_interval)
             continue
         new_buffer = parse_new_frames(appended_bytes, wav_info)
         audio_buffer = np.concatenate([audio_buffer, new_buffer])
+        audio_buffer_duration = audio_buffer.shape[0] / fs
         data = convert_np_array_to_wav_file_bytes(audio_buffer, fs)
         sad_result = sad.handle([data])[0]
+        if len(sad_result) == 0 and audio_buffer_duration > Algorithm.max_tail_sil:
+            logger.info("Silenced for a long time...")
+            break
         if len(sad_result):
-            audio_buffer_duration = audio_buffer.shape[0] / fs
             tail_sil = audio_buffer_duration - sad_result[-1]["end"]
-            if tail_sil > Algorithm.max_tail_sil:
-                logger.info("Silenced for a long time...")
-                break
-            elif tail_sil > Algorithm.lookahead_sil:
+            if tail_sil > Algorithm.lookahead_sil:
                 # receiving segment
                 logger.info(f"Silenced for a short time...")
+                start_sample = int(sad_result[0]["start"] * fs)
+                end_sample = int(sad_result[-1]["end"] * fs)
+                audio_segment = audio_buffer[start_sample:end_sample]
+                data = convert_np_array_to_wav_file_bytes(audio_segment, fs)
+                # spawn ASR and KWS processes
+                segment_number = len(process_list)
+                process = spawn_background_am_asr_kws(data, call_id, segment_number)
+                process_list.append(process)
+                # reset audio buffer
+                audio_buffer = zero_buffer.copy()
                 time.sleep(Algorithm.receiving_silent_segment_sleep)
             else:
                 # receiving segment
                 logger.info(f"Receiving segment...")
                 time.sleep(Algorithm.receiving_active_segment_sleep)
-        else:
+        elif len(process_list) == 0:
             logger.info("No activity detected yet! Going to a long sleep")
             time.sleep(Algorithm.receiving_silent_segment_sleep)
-
-    # spawn processes to process segments
-    logger.info(f"{len(sad_result)} segments are detected")
-    logger.info(f"{sad_result = }")
-    for i, segment in enumerate(sad_result):
-        start_sample = int(segment["start"] * fs)
-        end_sample = int(segment["end"] * fs)
-        logger.info(f"Audio segment info.: {start_sample = }, {end_sample = }")
-        audio_segment = audio_buffer[start_sample:end_sample]
-        data = convert_np_array_to_wav_file_bytes(audio_segment, fs)
-        # spawn ASR and KWS processes
-        process_list.append(spawn_background_am_asr_kws(data, call_id, i))
 
     # create metadata dict
     metadata_dict = {
@@ -129,6 +149,9 @@ def detect_answering_machine(call: Call) -> None:
     t1 = time.time()
     while any([process.is_alive() for process in process_list]):
         time.sleep(0.1)
+        if time.time() - t1 > Algorithm.max_awaiting_ai:
+            logger.info("ASR and KWS takes too long to finish...")
+            break
     process_duration = time.time() - t1
     asr_segment_results, kws_segment_results = recover_asr_kws_results(call_id)
     asr_result = " ".join(asr_segment_results)

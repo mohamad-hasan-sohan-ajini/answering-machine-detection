@@ -29,6 +29,7 @@ class Database:
     db_name: str = os.getenv("DB_NAME")
     table_name: str = os.getenv("DB_TABLE")
     url: str = f"postgresql+psycopg2://{user}:{password}@{host}/{db_name}"
+    timeout: int = 500  # database timeout in milliseconds
 
 
 @dataclass
@@ -50,6 +51,7 @@ class UserAgent:
 
 @dataclass
 class Algorithm:
+    chunk_interval: float = 0.1
     max_call_duration: float = 15.0
     zero_padding: int = 4000
     max_tail_sil: float = 1.5
@@ -61,6 +63,7 @@ class Algorithm:
     redis_port: str = os.getenv("REDIS_PORT")
     receiving_active_segment_sleep: float = 0.3
     receiving_silent_segment_sleep: float = 1.0
+    max_awaiting_ai: float = 1.0
 
 
 @dataclass
