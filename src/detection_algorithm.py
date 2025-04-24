@@ -163,7 +163,7 @@ def detect_answering_machine(call: Call) -> None:
     metadata_dict["kws_result"] = kws_result
 
     # asr string matching
-    asr_repeat = old_asr_result == asr_result
+    asr_repeat = (old_asr_result == asr_result) and len(asr_result)
     logger.info(f"{asr_repeat = }")
 
     # keyword spotting
@@ -178,6 +178,7 @@ def detect_answering_machine(call: Call) -> None:
 
     # search keywords in ASR result
     kw_in_asr_result = any([keyword in asr_result for keyword in am_keywords])
+    logger.info(f"{kw_in_asr_result = }")
 
     # ensemble of results
     if asr_repeat or keywords_detected or matching_result or kw_in_asr_result:
