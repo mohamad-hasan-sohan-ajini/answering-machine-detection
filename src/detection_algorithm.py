@@ -124,6 +124,23 @@ def detect_answering_machine(call: Call) -> None:
             logger.info("No activity detected yet! Going to a long sleep")
             time.sleep(Algorithm.receiving_silent_segment_sleep)
 
+    # evacuate audio buffer in case the call is too long and the last segment is not detected via max_tail_sil
+    if time.time() - t0 > Algorithm.max_call_duration:
+        audio_buffer = np.concatenate([audio_buffer, new_buffer])
+        audio_buffer_duration = audio_buffer.shape[0] / fs
+        data = convert_np_array_to_wav_file_bytes(audio_buffer, fs)
+        sad_result = sad.handle([data])[0]
+        if len(sad_result):
+            logger.info("Evacuating audio buffer...")
+            start_sample = int(sad_result[0]["start"] * fs)
+            end_sample = int(sad_result[-1]["end"] * fs)
+            audio_segment = audio_buffer[start_sample:end_sample]
+            data = convert_np_array_to_wav_file_bytes(audio_segment, fs)
+            # spawn ASR and KWS processes
+            segment_number = len(process_list)
+            process = spawn_background_am_asr_kws(data, call_id, segment_number)
+            process_list.append(process)
+
     # create metadata dict
     metadata_dict = {
         "call_id": call_id,
