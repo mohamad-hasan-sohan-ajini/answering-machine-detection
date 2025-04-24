@@ -52,10 +52,11 @@ class AudioMatching:
         Args:
             key_segment (torch.Tensor): key segment of shape (1, Tk)
             query_segment (torch.Tensor): query segment of shape (1, Tq)
-            Tk < Tq
+
+            Note: Tk should be smaller that Tq (Tk < Tq)
 
         Returns:
-            bool: True if key segment is found in query segment.
+            bool: False if the key and query are not comparable, otherwise the feature diff np.array
         """
         # check query segment length
         if query_segment.shape[1] < int(self.key_duration * self.sample_rate):
@@ -107,6 +108,8 @@ class AudioMatching:
             return False
         # compute cross correlation
         cross_correlation = self.compute_diff(key_segment, query_segment)
+        if cross_correlation is False:
+            return False
         return self.decide_dissimilarity(cross_correlation)
 
 
