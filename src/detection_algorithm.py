@@ -186,7 +186,6 @@ def detect_answering_machine(call: Call) -> None:
     logger.info(f"{asr_repeat = }")
 
     # keyword spotting
-    # TODO: filter kws result
     keywords_detected = len(kws_result) > 0
     logger.info(f"{keywords_detected = }")
 

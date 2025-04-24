@@ -91,6 +91,7 @@ def run_am_asr_kws(data):
     asr_response, kws_response = grequests.map(rs)
     asr_result = asr_response.text if asr_response.status_code == 200 else ""
     kws_result = kws_response.text if kws_response.status_code == 200 else "{}"
+    kws_result = filter_kws_result(kws_result)
 
     logger.info(f"@run_am_asr_kws {asr_result = }")
     logger.info(f"@run_am_asr_kws {kws_result = }")
@@ -301,3 +302,12 @@ def aggregate_kws_results(kws_segment_results):
         for key, value in kws_segment_result.items():
             result[key].extend(value)
     return result
+
+
+def filter_kws_result(kws_result):
+    kws_result = json.loads(kws_result)
+    kws_result = {
+        key: [value for value in values if value["score"] > Algorithm.kws_threshold]
+        for key, values in kws_result.items()
+    }
+    return json.dumps(kws_result)
