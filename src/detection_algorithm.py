@@ -72,13 +72,15 @@ def detect_answering_machine(call: Call) -> None:
         for index, process in enumerate(process_list):
             logger.info(f"Process {process.pid} is alive: {process.is_alive()}")
             if not process.is_alive():
-                _, kws_result = recover_keys_and_results(f"kws_{call_id}_{index}_*")
-                kws_result = json.loads(kws_result[0])
+                _, kws_results = recover_keys_and_results(f"kws_{call_id}_{index}_*")
+                kws_result = kws_results[0]
+                kws_result = json.loads(kws_result)
                 if len(kws_result) > 0:
                     logger.info(f"Early AM detection @KWS")
                     break_while = True
                     break
-                _, asr_result = recover_keys_and_results(f"asr_{call_id}_{index}_*")
+                _, asr_results = recover_keys_and_results(f"asr_{call_id}_{index}_*")
+                asr_result = asr_results[0]
                 kw_in_asr_result = any([kw in asr_result for kw in am_keywords])
                 if kw_in_asr_result:
                     logger.info(f"Early AM detection @ASR")
