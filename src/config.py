@@ -55,13 +55,13 @@ class Algorithm:
     max_call_duration: float = 15.0
     zero_padding: int = 4000
     max_tail_sil: float = 1.5
-    lookahead_sil: float = 0.3
+    lookahead_sil: float = 0.2
     am_rft: float = 1 / 10
     asr_decoder_rtf: float = 1 / 10
     kws_rtf: float = 1 / 12
     redis_host: str = os.getenv("REDIS_HOST")
     redis_port: str = os.getenv("REDIS_PORT")
-    receiving_active_segment_sleep: float = 0.3
+    receiving_active_segment_sleep: float = 0.1
     receiving_silent_segment_sleep: float = 1.0
     max_awaiting_ai: float = 1.0
 
@@ -115,7 +115,7 @@ am_keywords = [
     "PHONE NUMBER",
     "YOUR NUMBER",
     "A NUMBER",
-    "WILL RETURN YOUR CALL",
+    "RETURN YOUR CALL",
     "AS SOON AS POSSIBLE",
     "GET BACK TO YOU",
     "AT THE TONE",
