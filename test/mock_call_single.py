@@ -132,6 +132,7 @@ def call_amd_agent(
 
 
 if __name__ == "__main__":
+    # usage (at home): python mock_call_single.py --domain 192.168.1.124 --dst-num 8501 --playback-file ../src/objects/f770ac70-3c32-40ce-9178-a4c782f6e40e.wav
     parser = ArgumentParser()
     parser.add_argument("--domain", type=str, default="127.0.0.1")
     parser.add_argument("--src-user", type=str, default="7400")
