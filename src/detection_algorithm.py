@@ -99,7 +99,11 @@ def detect_answering_machine(call: Call) -> None:
         audio_buffer_duration = audio_buffer.shape[0] / fs
         data = convert_np_array_to_wav_file_bytes(audio_buffer, fs)
         sad_result = sad.handle([data])[0]
-        if len(sad_result) == 0 and audio_buffer_duration > Algorithm.max_tail_sil:
+        if (
+            len(sad_result) == 0
+            and audio_buffer_duration > Algorithm.max_tail_sil
+            and len(process_list) > 0
+        ):
             logger.info("Silenced for a long time...")
             break
         if len(sad_result):
