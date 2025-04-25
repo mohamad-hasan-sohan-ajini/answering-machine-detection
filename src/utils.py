@@ -310,4 +310,6 @@ def filter_kws_result(kws_result):
         key: [value for value in values if value["score"] > Algorithm.kws_threshold]
         for key, values in kws_result.items()
     }
+    # filter residual keys: keywords w/o occurrence
+    kws_result = {key: values for key, values in kws_result.items() if len(values)}
     return json.dumps(kws_result)
