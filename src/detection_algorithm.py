@@ -59,13 +59,14 @@ def detect_answering_machine(call: Call) -> None:
     # gather first few seconds of the call
     # Note: each packet appended every 100-120 ms (jitter absolutely possible!)
     sad = SAD()
-    zero_buffer = np.zeros(Algorithm.zero_padding, dtype=np.float32)
-    t0 = time.time()
-    audio_buffer = zero_buffer.copy()
+    init_buffer = np.zeros(Algorithm.zero_padding, dtype=np.float32)
+    # audio_buffer = zero_buffer.copy()
+    sad(init_buffer)
     sad_result = []
-    time.sleep(Algorithm.receiving_silent_segment_sleep)
     process_list = []
     break_while = False
+    t0 = time.time()
+    time.sleep(Algorithm.receiving_silent_segment_sleep)
     while time.time() - t0 < Algorithm.max_call_duration:
         # check process list for early AM detection
         logger.info(f"process list check...")
@@ -95,53 +96,48 @@ def detect_answering_machine(call: Call) -> None:
             time.sleep(Algorithm.chunk_interval)
             continue
         new_buffer = parse_new_frames(appended_bytes, wav_info)
-        audio_buffer = np.concatenate([audio_buffer, new_buffer])
-        audio_buffer_duration = audio_buffer.shape[0] / fs
-        data = convert_np_array_to_wav_file_bytes(audio_buffer, fs)
-        sad_result = sad.handle([data])[0]
+        # audio_buffer = np.concatenate([audio_buffer, new_buffer])
+        # audio_buffer_duration = audio_buffer.shape[0] / fs
+        # data = convert_np_array_to_wav_file_bytes(audio_buffer, fs)
+        # sad_result = sad.handle([data])[0]
+        sad_result = sad(new_buffer)
+        audio_buffer_duration = sad.get_audio_buffer_duration()
         if (
             len(sad_result) == 0
             and audio_buffer_duration > Algorithm.max_tail_sil
             and len(process_list) > 0
+            and not sad.triggered
         ):
             logger.info("Silenced for a long time...")
             break
         if len(sad_result):
             tail_sil = audio_buffer_duration - sad_result[-1]["end"]
-            if tail_sil > Algorithm.lookahead_sil:
-                # receiving segment
-                logger.info(f"Silenced for a short time...")
-                start_sample = int(sad_result[0]["start"] * fs)
-                end_sample = int(sad_result[-1]["end"] * fs)
-                audio_segment = audio_buffer[start_sample:end_sample]
-                data = convert_np_array_to_wav_file_bytes(audio_segment, fs)
-                # spawn ASR and KWS processes
-                segment_number = len(process_list)
-                process = spawn_background_am_asr_kws(data, call_id, segment_number)
-                process_list.append(process)
-                # reset audio buffer
-                audio_buffer = zero_buffer.copy()
-                time.sleep(Algorithm.receiving_silent_segment_sleep)
-            else:
-                # receiving segment
-                logger.info(f"Receiving segment...")
-                time.sleep(Algorithm.receiving_active_segment_sleep)
+            logger.info(f"{tail_sil = }")
+            # receiving segment
+            logger.info(f"Silenced for a short time...")
+            # start_sample = int(sad_result[0]["start"] * fs)
+            # end_sample = int(sad_result[-1]["end"] * fs)
+            # audio_segment = audio_buffer[start_sample:end_sample]
+            audio_segment = sad_result[0]["audio"]
+            data = convert_np_array_to_wav_file_bytes(audio_segment, fs)
+            # spawn ASR and KWS processes
+            segment_number = len(process_list)
+            process = spawn_background_am_asr_kws(data, call_id, segment_number)
+            process_list.append(process)
+            # reset audio buffer
+            time.sleep(Algorithm.receiving_silent_segment_sleep)
         elif len(process_list) == 0:
             logger.info("No activity detected yet! Going to a long sleep")
             time.sleep(Algorithm.receiving_silent_segment_sleep)
 
     # evacuate audio buffer in case the call is too long and the last segment is not detected via max_tail_sil
     if time.time() - t0 > Algorithm.max_call_duration:
-        audio_buffer = np.concatenate([audio_buffer, new_buffer])
-        audio_buffer_duration = audio_buffer.shape[0] / fs
-        data = convert_np_array_to_wav_file_bytes(audio_buffer, fs)
-        sad_result = sad.handle([data])[0]
-        if len(sad_result):
-            logger.info("Evacuating audio buffer...")
-            start_sample = int(sad_result[0]["start"] * fs)
-            end_sample = int(sad_result[-1]["end"] * fs)
-            audio_segment = audio_buffer[start_sample:end_sample]
-            data = convert_np_array_to_wav_file_bytes(audio_segment, fs)
+        # audio_buffer = np.concatenate([audio_buffer, new_buffer])
+        # audio_buffer_duration = audio_buffer.shape[0] / fs
+        sad_result = sad(np.zeros(16000))
+        if sad_result:
+            audio_buffer = sad_result["audio"]
+            data = convert_np_array_to_wav_file_bytes(audio_buffer, fs)
             # spawn ASR and KWS processes
             segment_number = len(process_list)
             process = spawn_background_am_asr_kws(data, call_id, segment_number)
