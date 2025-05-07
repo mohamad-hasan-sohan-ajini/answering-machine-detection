@@ -59,10 +59,10 @@ def detect_answering_machine(call: Call) -> None:
     # gather first few seconds of the call
     # Note: each packet appended every 100-120 ms (jitter absolutely possible!)
     sad = SAD()
-    init_buffer = np.zeros(Algorithm.zero_padding, dtype=np.float32)
+    # init_buffer = np.zeros(Algorithm.zero_padding, dtype=np.float32)
     # audio_buffer = zero_buffer.copy()
-    sad(init_buffer)
-    sad_result = []
+    # sad(init_buffer)
+    sad_results = []
     process_list = []
     break_while = False
     t0 = time.time()
@@ -110,7 +110,8 @@ def detect_answering_machine(call: Call) -> None:
         ):
             logger.info("Silenced for a long time...")
             break
-        if len(sad_result):
+        if sad_result:
+            sad_results.append(sad_result[0])
             tail_sil = audio_buffer_duration - sad_result[-1]["end"]
             logger.info(f"{tail_sil = }")
             # receiving segment
@@ -131,12 +132,12 @@ def detect_answering_machine(call: Call) -> None:
             time.sleep(Algorithm.receiving_silent_segment_sleep)
 
     # evacuate audio buffer in case the call is too long and the last segment is not detected via max_tail_sil
-    if time.time() - t0 > Algorithm.max_call_duration:
+    if time.time() - t0 > Algorithm.max_call_duration and sad.triggered:
         # audio_buffer = np.concatenate([audio_buffer, new_buffer])
         # audio_buffer_duration = audio_buffer.shape[0] / fs
         sad_result = sad(np.zeros(16000))
         if sad_result:
-            audio_buffer = sad_result["audio"]
+            audio_buffer = sad_result[0]["audio"]
             data = convert_np_array_to_wav_file_bytes(audio_buffer, fs)
             # spawn ASR and KWS processes
             segment_number = len(process_list)
@@ -144,13 +145,17 @@ def detect_answering_machine(call: Call) -> None:
             process_list.append(process)
 
     # create metadata dict
+    logger.info("remove audio key")
+    for sad_result in sad_results:
+        sad_result.pop("audio")
     metadata_dict = {
         "call_id": call_id,
         "dialed_number": dialed_number,
         "result": "",
         "duration": time.time() - t0,
-        "sad_result": sad_result,
+        "sad_result": sad_results,
     }
+    logger.info(sad_results)
 
     # fetch history
     old_amd_record = get_amd_record(dialed_number)
