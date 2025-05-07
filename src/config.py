@@ -54,7 +54,7 @@ class Algorithm:
     chunk_interval: float = 0.1
     max_call_duration: float = 15.0
     zero_padding: int = 4000
-    max_tail_sil: float = 1.5
+    max_tail_sil: float = 1.0
     lookahead_sil: float = 0.2
     am_rft: float = 1 / 10
     asr_decoder_rtf: float = 1 / 10
