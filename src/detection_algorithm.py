@@ -10,12 +10,15 @@ import soundfile as sf
 from audio_matching import AudioMatching
 from config import Algorithm, am_keywords
 from custom_callbacks import Call
-from sad.sad_model import SAD
+
+# from sad.sad_model import SAD
+from streamsad import SAD
 from utils import (
     aggregate_kws_results,
     convert_np_array_to_wav_file_bytes,
     delete_pj_obj_safely,
     get_amd_record,
+    get_sad_audio_buffer_duration,
     get_logger,
     get_number,
     parse_new_frames,
@@ -59,9 +62,6 @@ def detect_answering_machine(call: Call) -> None:
     # gather first few seconds of the call
     # Note: each packet appended every 100-120 ms (jitter absolutely possible!)
     sad = SAD()
-    # init_buffer = np.zeros(Algorithm.zero_padding, dtype=np.float32)
-    # audio_buffer = zero_buffer.copy()
-    # sad(init_buffer)
     sad_results = []
     process_list = []
     break_while = False
@@ -96,12 +96,8 @@ def detect_answering_machine(call: Call) -> None:
             time.sleep(Algorithm.chunk_interval)
             continue
         new_buffer = parse_new_frames(appended_bytes, wav_info)
-        # audio_buffer = np.concatenate([audio_buffer, new_buffer])
-        # audio_buffer_duration = audio_buffer.shape[0] / fs
-        # data = convert_np_array_to_wav_file_bytes(audio_buffer, fs)
-        # sad_result = sad.handle([data])[0]
         sad_result = sad(new_buffer)
-        audio_buffer_duration = sad.get_audio_buffer_duration()
+        audio_buffer_duration = get_sad_audio_buffer_duration(sad, fs)
         if (
             len(sad_result) == 0
             and audio_buffer_duration > Algorithm.max_tail_sil
@@ -116,10 +112,7 @@ def detect_answering_machine(call: Call) -> None:
             logger.info(f"{tail_sil = }")
             # receiving segment
             logger.info(f"Silenced for a short time...")
-            # start_sample = int(sad_result[0]["start"] * fs)
-            # end_sample = int(sad_result[-1]["end"] * fs)
-            # audio_segment = audio_buffer[start_sample:end_sample]
-            audio_segment = sad_result[0]["audio"]
+            audio_segment = sad.get_audio(sad_result[0])
             data = convert_np_array_to_wav_file_bytes(audio_segment, fs)
             # spawn ASR and KWS processes
             segment_number = len(process_list)
@@ -133,11 +126,10 @@ def detect_answering_machine(call: Call) -> None:
 
     # evacuate audio buffer in case the call is too long and the last segment is not detected via max_tail_sil
     if time.time() - t0 > Algorithm.max_call_duration and sad.triggered:
-        # audio_buffer = np.concatenate([audio_buffer, new_buffer])
-        # audio_buffer_duration = audio_buffer.shape[0] / fs
         sad_result = sad(np.zeros(16000))
         if sad_result:
-            audio_buffer = sad_result[0]["audio"]
+            # audio_buffer = sad_result[0]["audio"]
+            audio_buffer = sad.get_audio(sad_result[0])
             data = convert_np_array_to_wav_file_bytes(audio_buffer, fs)
             # spawn ASR and KWS processes
             segment_number = len(process_list)
@@ -145,9 +137,6 @@ def detect_answering_machine(call: Call) -> None:
             process_list.append(process)
 
     # create metadata dict
-    logger.info("remove audio key")
-    for sad_result in sad_results:
-        sad_result.pop("audio")
     metadata_dict = {
         "call_id": call_id,
         "dialed_number": dialed_number,
@@ -155,7 +144,7 @@ def detect_answering_machine(call: Call) -> None:
         "duration": time.time() - t0,
         "sad_result": sad_results,
     }
-    logger.info(sad_results)
+    logger.info(f"{sad_results = }")
 
     # fetch history
     old_amd_record = get_amd_record(dialed_number)

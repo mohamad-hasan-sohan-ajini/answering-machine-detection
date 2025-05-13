@@ -313,3 +313,7 @@ def filter_kws_result(kws_result):
     # filter residual keys: keywords w/o occurrence
     kws_result = {key: values for key, values in kws_result.items() if len(values)}
     return json.dumps(kws_result)
+
+
+def get_sad_audio_buffer_duration(sad, fs):
+    return sad.input_audio_buffer.shape[0] / fs
