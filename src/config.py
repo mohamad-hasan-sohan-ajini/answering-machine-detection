@@ -106,6 +106,12 @@ class KWSConfig:
         "Z",
     ]
     blank_index: int = 0
+    beam_width: int = 16
+    beta: float = 1.05
+    top_n: int = 25
+    min_keyword_score: float = 1e-4
+    max_gap: int = 25
+    clip_char_prob: float = 0.01
 
 
 am_keywords = [
