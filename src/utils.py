@@ -26,11 +26,13 @@ from config import (
     Algorithm,
     CallbackAPIs,
     Database,
+    KWSConfig,
     ObjectStorage,
     UserAgent,
 )
 from database import db_session
 from models import AMDRecord
+from wrapper import KWSDecoder
 
 _logger = None
 
@@ -317,3 +319,15 @@ def filter_kws_result(kws_result):
 
 def get_sad_audio_buffer_duration(sad, fs):
     return sad.input_audio_buffer.shape[0] / fs
+
+
+def get_kws_decoder():
+    decoder = KWSDecoder(KWSConfig.alphabet, KWSConfig.blank_index)
+    decoder.set_beam_width(KWSConfig.beam_width)
+    decoder.set_beta(KWSConfig.beta)
+    decoder.set_blank_index(KWSConfig.blank_index)
+    decoder.set_max_gap(KWSConfig.max_gap)
+    decoder.set_min_clip(KWSConfig.clip_char_prob)
+    decoder.set_min_keyword_score(KWSConfig.min_keyword_score)
+    decoder.set_top_n(KWSConfig.top_n)
+    return decoder
