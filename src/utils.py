@@ -340,7 +340,6 @@ def get_kws_decoder():
     decoder = KWSDecoder(KWSConfig.alphabet, KWSConfig.blank_index)
     decoder.set_beam_width(KWSConfig.beam_width)
     decoder.set_beta(KWSConfig.beta)
-    decoder.set_blank_index(KWSConfig.blank_index)
     decoder.set_max_gap(KWSConfig.max_gap)
     decoder.set_min_clip(KWSConfig.clip_char_prob)
     decoder.set_min_keyword_score(KWSConfig.min_keyword_score)
