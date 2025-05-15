@@ -31,7 +31,6 @@ from config import (
     KWSConfig,
     ObjectStorage,
     UserAgent,
-    am_keywords,
 )
 from database import db_session
 from models import AMDRecord
@@ -346,5 +345,5 @@ def get_kws_decoder():
     decoder.set_min_clip(KWSConfig.clip_char_prob)
     decoder.set_min_keyword_score(KWSConfig.min_keyword_score)
     decoder.set_top_n(KWSConfig.top_n)
-    decoder.add_words(am_keywords)
+    decoder.add_words(KWSConfig.am_keywords)
     return decoder

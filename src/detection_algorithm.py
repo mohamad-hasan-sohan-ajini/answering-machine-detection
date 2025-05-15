@@ -8,7 +8,7 @@ import pjsua2 as pj
 import soundfile as sf
 
 from audio_matching import AudioMatching
-from config import Algorithm, am_keywords
+from config import Algorithm, KWSConfig
 from custom_callbacks import Call
 
 # from sad.sad_model import SAD
@@ -82,7 +82,9 @@ def detect_answering_machine(call: Call) -> None:
                     break
                 _, asr_results = recover_keys_and_results(f"asr_{call_id}_{index}_*")
                 asr_result = asr_results[0]
-                kw_in_asr_result = any([kw in asr_result for kw in am_keywords])
+                kw_in_asr_result = any(
+                    [kw in asr_result for kw in KWSConfig.am_keywords]
+                )
                 if kw_in_asr_result:
                     logger.info(f"Early AM detection @ASR")
                     break_while = True
@@ -189,7 +191,7 @@ def detect_answering_machine(call: Call) -> None:
     logger.info(f"{matching_result = }")
 
     # search keywords in ASR result
-    kw_in_asr_result = any([keyword in asr_result for keyword in am_keywords])
+    kw_in_asr_result = any([keyword in asr_result for keyword in KWSConfig.am_keywords])
     logger.info(f"{kw_in_asr_result = }")
 
     # ensemble of results
