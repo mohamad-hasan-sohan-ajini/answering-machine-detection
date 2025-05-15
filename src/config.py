@@ -105,6 +105,7 @@ class KWSConfig:
         "Y",
         "Z",
     ]
+    num_labels: int = len(alphabet)
     blank_index: int = 0
     beam_width: int = 16
     beta: float = 1.05
