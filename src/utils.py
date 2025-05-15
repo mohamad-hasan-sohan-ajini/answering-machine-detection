@@ -307,7 +307,8 @@ def aggregate_kws_results(kws_segment_results):
 
 
 def filter_kws_result(kws_result):
-    kws_result = json.loads(kws_result)
+    if isinstance(kws_result, str):
+        kws_result = json.loads(kws_result)
     kws_result = {
         key: [value for value in values if value["score"] > Algorithm.kws_threshold]
         for key, values in kws_result.items()
