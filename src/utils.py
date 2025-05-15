@@ -344,4 +344,5 @@ def get_kws_decoder():
     decoder.set_min_clip(KWSConfig.clip_char_prob)
     decoder.set_min_keyword_score(KWSConfig.min_keyword_score)
     decoder.set_top_n(KWSConfig.top_n)
+    decoder.add_words(am_keywords)
     return decoder
