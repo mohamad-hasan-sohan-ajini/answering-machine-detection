@@ -31,6 +31,7 @@ from config import (
     KWSConfig,
     ObjectStorage,
     UserAgent,
+    am_keywords,
 )
 from database import db_session
 from models import AMDRecord
@@ -104,6 +105,7 @@ def run_am_asr_kws(data):
     am_out = am_out.reshape(-1, KWSConfig.num_labels)
     am_probs = np.exp(am_out)
     kws_result = decoder.search(am_probs)
+    logger.info(f"@run_am_asr_kws (unfiltered) {kws_result = }")
     kws_result = filter_kws_result(kws_result)
     # kws result is ready, fetch asr result too
     asr_response = future_asr.result(timeout=AIEndpoints.timeout)
