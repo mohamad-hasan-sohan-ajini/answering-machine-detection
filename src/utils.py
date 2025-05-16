@@ -12,7 +12,6 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Process
 
-import grequests
 import numpy as np
 import pjsua2 as pj
 import requests
