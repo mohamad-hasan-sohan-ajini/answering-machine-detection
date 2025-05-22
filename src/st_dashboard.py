@@ -1,12 +1,13 @@
 import json
 from datetime import date, timedelta
 
+import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
 from minio import Minio
 from sqlalchemy import func
 
-from config import ObjectStorage
+from config import Algorithm, ObjectStorage
 from database import db_session
 from models import AMDRecord
 
@@ -73,10 +74,21 @@ for call in calls:
     )
     metadata = json.loads(metadata.read())
     metadata_list.append(metadata)
-
+df = pd.DataFrame(metadata_list)
+st.data_editor(df)
 st.write(
     f"Fetched {len(metadata_list)} records from {ObjectStorage.minio_metadata_bucket_name}."
 )
-# Display the DataFrame in the Streamlit app
-df = pd.DataFrame(metadata_list)
-st.dataframe(df)
+
+# AMD vs non-AMD
+st.write("### Call Count: AMD VS non-AMD")
+result_counts = df["result"].value_counts()
+st.dataframe(
+    result_counts.to_frame()
+    .reset_index()
+    .rename(columns={"index": "Result", "result": "Count"})
+)
+fig, ax = plt.subplots(figsize=(6, 6))
+ax.pie(result_counts, labels=result_counts.index, autopct="%1.1f%%", startangle=90)
+ax.axis("equal")
+st.pyplot(fig)
