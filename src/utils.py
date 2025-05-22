@@ -33,7 +33,7 @@ from config import (
 )
 from database import db_session
 from models import AMDRecord
-from wrapper import KWSDecoder
+from kws_decoder import KWSDecoder
 
 _logger = None
 
