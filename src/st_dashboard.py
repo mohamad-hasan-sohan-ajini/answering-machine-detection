@@ -42,9 +42,6 @@ with col2:
 
 if from_date > to_date:
     st.error("⛔ **'From'** must be on/before **'To'**.")
-else:
-    st.success(f"Selected range: **{from_date} → {to_date}**")
-
 
 #########################
 # fetch data from DB/OS #
@@ -75,10 +72,11 @@ for call in calls:
     metadata = json.loads(metadata.read())
     metadata_list.append(metadata)
 df = pd.DataFrame(metadata_list)
-st.data_editor(df)
+# st.data_editor(df)
 total_calls = len(metadata_list)
-st.write(
-    f"Fetched {total_calls} records from {ObjectStorage.minio_metadata_bucket_name}."
+
+st.success(
+    f"Selected range: **{from_date} → {to_date}**\n\nFetched {total_calls} records from {ObjectStorage.minio_metadata_bucket_name}."
 )
 
 # AMD vs non-AMD
