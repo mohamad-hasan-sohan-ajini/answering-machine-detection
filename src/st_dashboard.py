@@ -76,8 +76,9 @@ for call in calls:
     metadata_list.append(metadata)
 df = pd.DataFrame(metadata_list)
 st.data_editor(df)
+total_calls = len(metadata_list)
 st.write(
-    f"Fetched {len(metadata_list)} records from {ObjectStorage.minio_metadata_bucket_name}."
+    f"Fetched {total_calls} records from {ObjectStorage.minio_metadata_bucket_name}."
 )
 
 # AMD vs non-AMD
@@ -114,3 +115,19 @@ ax_hist.set_title("Number of Segments Histogram")
 ax_hist.set_xlabel("Number of Segments")
 ax_hist.set_ylabel("Frequency")
 st.pyplot(fig_hist)
+
+# AMD reason: ASR vs KWS
+BINS = 5
+st.write("### AMD Reason")
+fig_hist, ax_hist = plt.subplots(figsize=(10, 6))
+detected_by_kws = sum([1 for i in df["kws_result"] if i])
+detected_by_asr = total_calls - detected_by_kws
+fig, ax = plt.subplots(figsize=(6, 6))
+ax.pie(
+    [detected_by_asr, detected_by_kws],
+    labels=["ASR", "KWS"],
+    autopct="%1.1f%%",
+    startangle=90,
+)
+ax.axis("equal")
+st.pyplot(fig)
