@@ -117,7 +117,6 @@ ax_hist.set_ylabel("Frequency")
 st.pyplot(fig_hist)
 
 # AMD reason: ASR vs KWS
-BINS = 5
 st.write("### AMD Reason")
 fig_hist, ax_hist = plt.subplots(figsize=(10, 6))
 detected_by_kws = sum([1 for i in df["kws_result"] if i])
