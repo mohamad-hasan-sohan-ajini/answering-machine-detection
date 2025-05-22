@@ -7,10 +7,11 @@ import logging
 import os
 import re
 import time
+from base64 import b64decode
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Process
 
-import grequests
 import numpy as np
 import pjsua2 as pj
 import requests
@@ -32,7 +33,7 @@ from config import (
 )
 from database import db_session
 from models import AMDRecord
-from wrapper import KWSDecoder
+from kws_decoder import KWSDecoder
 
 _logger = None
 
@@ -84,16 +85,29 @@ def run_am_asr_kws(data):
     if am_result == "":
         logger.warning("check acoustic model...")
         return "", "", {}
-    # run decoder algorithms in parallel
-    urls = [
-        AIEndpoints.asr_decoder_endpoint,
-        AIEndpoints.amd_kws_endpoint,
-    ]
-    rs = (grequests.get(u, data=am_result, timeout=AIEndpoints.timeout) for u in urls)
-    asr_response, kws_response = grequests.map(rs)
-    asr_result = asr_response.text if asr_response.status_code == 200 else ""
-    kws_result = kws_response.text if kws_response.status_code == 200 else "{}"
+
+    def fetch_asr():
+        return requests.get(
+            AIEndpoints.asr_decoder_endpoint,
+            data=am_result,
+            timeout=AIEndpoints.timeout,
+        )
+
+    # run asr in thread pool
+    executor = ThreadPoolExecutor(max_workers=1)
+    future_asr = executor.submit(fetch_asr)
+    # run kws in parallel with thread pool
+    decoder = get_kws_decoder()
+    np_buffer = b64decode(am_result)
+    am_out = np.frombuffer(np_buffer, dtype=np.float32)
+    am_out = am_out.reshape(-1, KWSConfig.num_labels)
+    am_probs = np.exp(am_out)
+    kws_result = decoder.search(am_probs)
+    logger.info(f"@run_am_asr_kws (unfiltered) {kws_result = }")
     kws_result = filter_kws_result(kws_result)
+    # kws result is ready, fetch asr result too
+    asr_response = future_asr.result(timeout=AIEndpoints.timeout)
+    asr_result = asr_response.text if asr_response.status_code == 200 else ""
 
     logger.info(f"@run_am_asr_kws {asr_result = }")
     logger.info(f"@run_am_asr_kws {kws_result = }")
@@ -307,7 +321,8 @@ def aggregate_kws_results(kws_segment_results):
 
 
 def filter_kws_result(kws_result):
-    kws_result = json.loads(kws_result)
+    if isinstance(kws_result, str):
+        kws_result = json.loads(kws_result)
     kws_result = {
         key: [value for value in values if value["score"] > Algorithm.kws_threshold]
         for key, values in kws_result.items()
@@ -325,9 +340,9 @@ def get_kws_decoder():
     decoder = KWSDecoder(KWSConfig.alphabet, KWSConfig.blank_index)
     decoder.set_beam_width(KWSConfig.beam_width)
     decoder.set_beta(KWSConfig.beta)
-    decoder.set_blank_index(KWSConfig.blank_index)
     decoder.set_max_gap(KWSConfig.max_gap)
     decoder.set_min_clip(KWSConfig.clip_char_prob)
     decoder.set_min_keyword_score(KWSConfig.min_keyword_score)
     decoder.set_top_n(KWSConfig.top_n)
+    decoder.add_words(KWSConfig.am_keywords)
     return decoder
