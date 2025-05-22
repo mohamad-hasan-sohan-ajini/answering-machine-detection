@@ -98,7 +98,7 @@ BINS = 5
 st.write("### Call Duration Histogram")
 fig_hist, ax_hist = plt.subplots(figsize=(10, 6))
 duration = [min(i, Algorithm.max_call_duration) for i in df["duration"]]
-ax_hist.hist(duration, bins=BINS, color="red", edgecolor="black")
+ax_hist.hist(duration, bins=BINS, color="#26C2D2FF", edgecolor="black")
 ax_hist.set_title("Call Duration Histogram")
 ax_hist.set_xlabel("Duration (seconds)")
 ax_hist.set_ylabel("Frequency")
@@ -109,7 +109,7 @@ BINS = 5
 st.write("### Segments/Call Histogram")
 fig_hist, ax_hist = plt.subplots(figsize=(10, 6))
 number_of_segments = [len(i) for i in df["sad_result"]]
-ax_hist.hist(number_of_segments, bins=BINS, color="skyblue", edgecolor="black")
+ax_hist.hist(number_of_segments, bins=BINS, color="#2CA02CFF", edgecolor="black")
 ax_hist.set_title("Number of Segments Histogram")
 ax_hist.set_xlabel("Number of Segments")
 ax_hist.set_ylabel("Frequency")
