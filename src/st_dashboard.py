@@ -92,3 +92,14 @@ fig, ax = plt.subplots(figsize=(6, 6))
 ax.pie(result_counts, labels=result_counts.index, autopct="%1.1f%%", startangle=90)
 ax.axis("equal")
 st.pyplot(fig)
+
+# call duration
+BINS = 5
+st.write("### Call Duration Histogram")
+fig_hist, ax_hist = plt.subplots(figsize=(10, 6))
+duration = [min(i, Algorithm.max_call_duration) for i in df["duration"]]
+ax_hist.hist(duration, bins=BINS, color="skyblue", edgecolor="black")
+ax_hist.set_title("Call Duration Histogram")
+ax_hist.set_xlabel("Duration (seconds)")
+ax_hist.set_ylabel("Frequency")
+st.pyplot(fig_hist)
