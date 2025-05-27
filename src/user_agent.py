@@ -37,7 +37,7 @@ def run_user_agent(
 
     # configure endpoint
     ep_cfg = pj.EpConfig()
-    ep_cfg.logConfig.level = UserAgent.log_level
+    ep_cfg.logConfig.level = 0
     ep.libInit(ep_cfg)
     ep.audDevManager().setNullDev()
 
@@ -62,43 +62,44 @@ def run_user_agent(
     acc.create(acfg)
 
     # wait for a call
-    t0 = time.time()
+    last_registration_time = time.time()
     while acc._call is None:
         time.sleep(0.01)
         # renewal condition
-        if time.time() - t0 > UserAgent.renew_time:
-            t0 = time.time()
+        if time.time() - last_registration_time > UserAgent.renew_time:
+            last_registration_time = time.time()
             logger.info("Renew Registration...")
             acc.setRegistration(True)
     call = acc._call
-    call_op_param = acc._call_op_param
-    call_info = call.getInfo()
+    acc._call = None
+    logger.info("Incoming call detected!")
 
-    # pj.PJSIP_INV_STATE_CALLING = 1
-    # pj.PJSIP_INV_STATE_INCOMING = 2
-    # pj.PJSIP_INV_STATE_EARLY = 3
-    # pj.PJSIP_INV_STATE_CONNECTING = 4
-    # pj.PJSIP_INV_STATE_CONFIRMED = 5
-    t0 = time.time()
+    # wait for call to be confirmed
+    start_time_for_call_confirmation = time.time()
     while (
-        call_info.state != pj.PJSIP_INV_STATE_CONFIRMED
-        and time.time() - t0 < UserAgent.max_inv_confirmed
+        call.getInfo().state != pj.PJSIP_INV_STATE_CONFIRMED
+        and time.time() - start_time_for_call_confirmation < UserAgent.max_inv_confirmed
     ):
-        print(call_info.state, call_info.stateText)
+        logger.info(call.getInfo().state)
+        logger.info(call.getInfo().stateText)
         time.sleep(0.01)
-    for i in range(10):
-        print(call.getInfo().remoteUri)
-        print(call.getInfo().remoteContact)
-        print("-" * 20)
+    logger.info("Call confirmed!")
+    logger.info(call.getInfo().remoteUri)
+    logger.info(call.getInfo().remoteContact)
+
     # wait until media is consented
-    t0 = time.time()
-    while time.time() - t0 < UserAgent.max_media_consent:
-        if call.media_changed:
-            call.getInfo()
-            break
+    start_time_for_media_consent = time.time()
+    while (
+        call._media_consented is False
+        and time.time() - start_time_for_media_consent < UserAgent.max_media_consent
+    ):
         time.sleep(0.1)
+    logger.info("Media consented!")
     call_id = call.getInfo().callIdString
     logger.info(f"{call_id = }")
+
+    # run AM detection algorithm
+    logger.info("Running AMD algorithm...")
     try:
         metadata_dict = detect_answering_machine(call)
     except Exception as E:
@@ -106,10 +107,13 @@ def run_user_agent(
         logger.info(E)
         metadata_dict = {
             "call_id": call_id,
-            "dialed_number": get_number(call_info.remoteUri),
+            "dialed_number": get_number(call.getInfo().remoteUri),
             "result": "exception",
             "duration": 0,
         }
+
+    # make decision based on the result of the algorithm
+    call_op_param = pj.CallOpParam(True)
     match metadata_dict["result"]:
         case "AMD":
             call.xfer(f"sip:{amd_dst}@{domain}", call_op_param)
@@ -117,21 +121,26 @@ def run_user_agent(
             call.xfer(f"sip:{non_amd_dst}@{domain}", call_op_param)
         case _:
             call.hangup(call_op_param)
-    # store audio and metadata in object storage
+
+    # store call and metadata
+    logger.info("Storing call and metadata...")
     store_wav(metadata_dict["call_id"] + ".wav")
     store_metadata(metadata_dict)
-    # log meta date in database
     add_call_log_to_database(metadata_dict)
-    # also call proper callback API
-    call_api()
+    # call_api()
+
     # close the things out
-    print(metadata_dict)
-    print("deleting params...")
-    print("*" * 100)
-    delete_pj_obj_safely(call_info)
-    delete_pj_obj_safely(call)
-    delete_pj_obj_safely(call_op_param)
-    delete_pj_obj_safely(acc)
+    start_time_to_delete_call = time.time()
+    call.hangup(call_op_param)
+    while call._delete_call is False and time.time() - start_time_to_delete_call < 1:
+        # ep.libHandleEvents(50)
+        time.sleep(0.01)
+    del call
+    logger.info("Call finished!")
+    logger.info(metadata_dict)
+    logger.info("deleting params...")
+    logger.info("*" * 100)
+    # delete_pj_obj_safely(acc)
     # Destroy the library
     try:
         ep.libDestroy()
