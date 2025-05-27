@@ -84,7 +84,7 @@ def run_am_asr_kws(data):
     )
     if not am_result:
         logger.warning("check acoustic model...")
-        return "", "", {}
+        return "", "", "{}"
 
     def fetch_asr():
         return requests.get(
