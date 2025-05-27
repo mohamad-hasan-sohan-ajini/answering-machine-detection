@@ -43,8 +43,8 @@ class ObjectStorage:
 
 @dataclass
 class UserAgent:
-    max_inv_confirmed: float = 2
-    max_media_consent: float = 10.0
+    max_inv_confirmed: float = 2.0
+    max_media_consent: float = 1.0
     log_level: int = logging.DEBUG
     renew_time: float = 60
 
