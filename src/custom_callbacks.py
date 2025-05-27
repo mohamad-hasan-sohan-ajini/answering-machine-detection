@@ -11,23 +11,17 @@ class Call(pj.Call):
 
     def onCallState(self, prm):
         """Invoked with call state changes in SIP."""
-        ci = self.getInfo()
-        if ci.state == pj.PJSIP_INV_STATE_DISCONNECTED:
+        if self.getInfo().state == pj.PJSIP_INV_STATE_DISCONNECTED:
             self._delete_call = True
 
     def onCallMediaState(self, prm):
         """Invoked upon call media consent between caller and callee."""
         # self.media_changed = True
         # self.last_prm = prm
-        print("media state changed\n" * 100)
-        ci = self.getInfo()
-        for media in ci.media:
-            if (
-                media.type == pj.PJMEDIA_TYPE_AUDIO
-                and media.status == pj.PJSUA_CALL_MEDIA_ACTIVE
-            ):
+        # print("media state changed\n" * 100)
+        for media in self.getInfo().media:
+            if media.type == pj.PJMEDIA_TYPE_AUDIO:
                 self._media_consented = True
-                break
         return super().onCallMediaState(prm)
 
 
