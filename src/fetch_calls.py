@@ -39,12 +39,16 @@ client = Minio(
 for call in calls:
     call_id = call.call_id
     # fetch metadata
-    metadate = client.get_object(
-        ObjectStorage.minio_metadata_bucket_name, call_id + ".json"
+    metadata = client.get_object(
+        ObjectStorage.minio_metadata_bucket_name,
+        call_id + ".json",
     )
     with open(f"objects/{call_id}.json", "w") as f:
-        json.dump(json.loads(metadate.read()), f, indent=4)
+        json.dump(json.loads(metadata.read()), f, indent=4)
     # fetch wav file
-    wav = client.get_object(ObjectStorage.minio_wav_bucket_name, call_id + ".wav")
+    wav = client.get_object(
+        ObjectStorage.minio_wav_bucket_name,
+        call_id + ".wav",
+    )
     with open(f"objects/{call_id}.wav", "wb") as f:
         f.write(wav.read())
