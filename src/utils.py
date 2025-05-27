@@ -82,7 +82,7 @@ def run_am_asr_kws(data):
         "",
         AIEndpoints.timeout,
     )
-    if am_result == "":
+    if not am_result:
         logger.warning("check acoustic model...")
         return "", "", {}
 
