@@ -287,7 +287,7 @@ def call_api_non_blocking(url, data, default, timeout):
         if response.status_code != 200:
             logger.warning(f"non-200 status code for {url}")
             response = None
-    except requests.exceptions.Timeout:
+    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
         logger.warning(f"Latency for {url} is high!")
         response = None
     if response is None:
