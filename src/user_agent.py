@@ -11,7 +11,6 @@ from detection_algorithm import detect_answering_machine
 from utils import (
     add_call_log_to_database,
     call_api,
-    delete_pj_obj_safely,
     get_logger,
     get_number,
     store_metadata,
@@ -88,7 +87,7 @@ def run_user_agent(
     # wait until media is consented
     start_time_for_media_consent = time.time()
     while (
-        call._media_consented is False
+        call.hasMedia() is False
         and time.time() - start_time_for_media_consent < UserAgent.max_media_consent
     ):
         time.sleep(0.1)
@@ -125,20 +124,18 @@ def run_user_agent(
     store_wav(metadata_dict["call_id"] + ".wav")
     store_metadata(metadata_dict)
     add_call_log_to_database(metadata_dict)
-    # call_api()
+    call_api()
 
     # close the things out
     start_time_to_delete_call = time.time()
     call.hangup(call_op_param)
     while call._delete_call is False and time.time() - start_time_to_delete_call < 1:
-        # ep.libHandleEvents(50)
         time.sleep(0.01)
     del call
     logger.info("Call finished!")
     logger.info(metadata_dict)
     logger.info("deleting params...")
     logger.info("*" * 100)
-    # delete_pj_obj_safely(acc)
     # Destroy the library
     try:
         ep.libDestroy()
