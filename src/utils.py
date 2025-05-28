@@ -304,13 +304,6 @@ def call_api():
     call_api_non_blocking(CallbackAPIs.address, None, "", 1.0)
 
 
-def delete_pj_obj_safely(pj_obj):
-    try:
-        del pj_obj
-    except pj.Error:
-        pass
-
-
 def aggregate_kws_results(kws_segment_results):
     kws_segment_results = [json.loads(kws_result) for kws_result in kws_segment_results]
     result = defaultdict(list)
