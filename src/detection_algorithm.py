@@ -15,7 +15,6 @@ from streamsad import SAD
 from utils import (
     aggregate_kws_results,
     convert_np_array_to_wav_file_bytes,
-    delete_pj_obj_safely,
     get_amd_record,
     get_sad_audio_buffer_duration,
     get_logger,
@@ -206,7 +205,5 @@ def detect_answering_machine(call: Call) -> None:
     logger.info(f"{metadata_dict = }")
     # delete pjsua objects
     aud_med.stopTransmit(wav_writer)
-    delete_pj_obj_safely(wav_writer)
-    delete_pj_obj_safely(aud_med)
     logger.info("Return to UA")
     return metadata_dict
