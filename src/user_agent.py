@@ -80,8 +80,6 @@ def run_user_agent(
         call.getInfo().state != pj.PJSIP_INV_STATE_CONFIRMED
         and time.time() - start_time_for_call_confirmation < UserAgent.max_inv_confirmed
     ):
-        logger.info(call.getInfo().state)
-        logger.info(call.getInfo().stateText)
         time.sleep(0.01)
     logger.info("Call confirmed!")
     logger.info(call.getInfo().remoteUri)
