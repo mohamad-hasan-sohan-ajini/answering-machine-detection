@@ -11,7 +11,6 @@ from audio_matching import AudioMatching
 from config import Algorithm, KWSConfig
 from custom_callbacks import Call
 
-# from sad.sad_model import SAD
 from streamsad import SAD
 from utils import (
     aggregate_kws_results,
