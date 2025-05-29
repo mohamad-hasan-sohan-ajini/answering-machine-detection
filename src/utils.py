@@ -128,9 +128,9 @@ def lookahead_am_asr_kws_pipeline(data, call_id, segment_number):
         port=Algorithm.redis_port,
         decode_responses=True,
     )
-    redis.set(am_redis_key, am_result, ex=6000)
-    redis.set(asr_redis_key, asr_result, ex=6000)
-    redis.set(kws_redis_key, kws_result, ex=6000)
+    redis.set(am_redis_key, am_result, ex=Algorithm.expiration_time_second)
+    redis.set(asr_redis_key, asr_result, ex=Algorithm.expiration_time_second)
+    redis.set(kws_redis_key, kws_result, ex=Algorithm.expiration_time_second)
 
 
 def spawn_background_am_asr_kws(data, call_id, segment_number):

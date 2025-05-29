@@ -61,6 +61,7 @@ class Algorithm:
     kws_rtf: float = 1 / 12
     redis_host: str = os.getenv("REDIS_HOST")
     redis_port: str = os.getenv("REDIS_PORT")
+    expiration_time_second: int = 6000
     receiving_active_segment_sleep: float = 0.1
     receiving_silent_segment_sleep: float = 1.0
     max_awaiting_ai: float = 1.5
