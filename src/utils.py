@@ -13,7 +13,6 @@ from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Process
 
 import numpy as np
-import pjsua2 as pj
 import requests
 import soundfile as sf
 import torch
