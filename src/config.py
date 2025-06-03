@@ -3,12 +3,14 @@
 import logging
 import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import ClassVar
 
 from dotenv import load_dotenv
 
 load_dotenv()
 is_production = False if os.getenv("UA_ENV") == "pc" else True
+file_path = Path(__file__).parent
 
 
 @dataclass
@@ -66,7 +68,7 @@ class Algorithm:
     receiving_silent_segment_sleep: float = 1.0
     max_awaiting_ai: float = 1.5
     kws_threshold: float = 0.15
-    background_noise_dir: str = "../playbacks/background"
+    background_noise_dir: str = str(file_path / "../playbacks/background")
 
 
 @dataclass
