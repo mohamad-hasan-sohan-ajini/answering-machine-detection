@@ -141,9 +141,9 @@ def run_user_agent(
         ep.libDestroy()
     except pj.Error:
         pass
-    return metadata_dict
     logger.info("Agent finished!")
     logger.info("*" * 100)
+    return metadata_dict
 
 
 if __name__ == "__main__":
