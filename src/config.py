@@ -66,6 +66,7 @@ class Algorithm:
     receiving_silent_segment_sleep: float = 1.0
     max_awaiting_ai: float = 1.5
     kws_threshold: float = 0.15
+    background_noise_dir: str = "../playbacks/background"
 
 
 @dataclass

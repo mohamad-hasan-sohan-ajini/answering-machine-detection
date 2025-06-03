@@ -11,6 +11,7 @@ from base64 import b64decode
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Process
+from pathlib import Path
 
 import numpy as np
 import requests
@@ -338,3 +339,11 @@ def get_kws_decoder():
     decoder.set_top_n(KWSConfig.top_n)
     decoder.add_words(KWSConfig.am_keywords)
     return decoder
+
+
+def get_background_noise():
+    path = Path(Algorithm.background_noise_dir)
+    files = list(path.glob("*.wav"))
+    if files:
+        return str(np.random.choice(files))
+    return ""

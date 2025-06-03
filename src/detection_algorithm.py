@@ -16,6 +16,7 @@ from utils import (
     aggregate_kws_results,
     convert_np_array_to_wav_file_bytes,
     get_amd_record,
+    get_background_noise,
     get_sad_audio_buffer_duration,
     get_logger,
     get_number,
@@ -44,6 +45,18 @@ def detect_answering_machine(call: Call) -> None:
     # capture audio media
     aud_med = call.getAudioMedia(0)
     aud_med.startTransmit(wav_writer)
+
+    # start playing background noise
+    playback_path = get_background_noise()
+    if playback_path:
+        logger.info(f"{playback_path = }")
+        playback_info = sf.info(playback_path)
+        logger.info(f"playback time: {playback_info.duration}")
+        player = pj.AudioMediaPlayer()
+        player.createPlayer(playback_path, pj.PJMEDIA_FILE_NO_LOOP)
+        player.startTransmit(aud_med)
+    else:
+        logger.info("No playback...")
 
     # wait till wav file is created
     wav_info = None
@@ -204,6 +217,9 @@ def detect_answering_machine(call: Call) -> None:
     # log and return
     logger.info(f"{metadata_dict = }")
     # delete pjsua objects
+    if playback_path:
+        player.stopTransmit(aud_med)
+        del player
     aud_med.stopTransmit(wav_writer)
     logger.info("Return to UA")
     return metadata_dict
