@@ -37,6 +37,7 @@ def run_user_agent(
     # configure endpoint
     ep_cfg = pj.EpConfig()
     ep_cfg.logConfig.level = 0
+    ep_cfg.medConfig.noVad = True
     ep.libInit(ep_cfg)
     ep.audDevManager().setNullDev()
 
