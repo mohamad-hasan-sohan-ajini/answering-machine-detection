@@ -2,6 +2,7 @@ import json
 from datetime import date, timedelta
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import streamlit as st
 from minio import Minio
@@ -88,27 +89,41 @@ st.dataframe(
     .rename(columns={"index": "Result", "result": "Count"})
 )
 fig, ax = plt.subplots(figsize=(6, 6))
-ax.pie(result_counts, labels=result_counts.index, autopct="%1.1f%%", startangle=90)
+ax.pie(
+    result_counts,
+    labels=result_counts.index,
+    autopct="%1.1f%%",
+    startangle=90,
+    colors=["#DEFACE", "#FACADE"],
+)
 ax.axis("equal")
 st.pyplot(fig)
 
 # call duration
-BINS = 5
 st.write("### Call Duration Histogram")
-fig_hist, ax_hist = plt.subplots(figsize=(10, 6))
+fig_hist, ax_hist = plt.subplots(figsize=(12, 8))
 duration = [min(i, Algorithm.max_call_duration) for i in df["duration"]]
-ax_hist.hist(duration, bins=BINS, color="#26C2D2FF", edgecolor="black")
+ax_hist.hist(
+    duration,
+    bins=range(0, int(Algorithm.max_call_duration)),
+    color="#BEEFED",
+    edgecolor="black",
+)
 ax_hist.set_title("Call Duration Histogram")
 ax_hist.set_xlabel("Duration (seconds)")
 ax_hist.set_ylabel("Frequency")
 st.pyplot(fig_hist)
 
 # number of segments in each call
-BINS = 5
 st.write("### Segments/Call Histogram")
-fig_hist, ax_hist = plt.subplots(figsize=(10, 6))
+fig_hist, ax_hist = plt.subplots(figsize=(12, 8))
 number_of_segments = [len(i) for i in df["sad_result"]]
-ax_hist.hist(number_of_segments, bins=BINS, color="#2CA02CFF", edgecolor="black")
+ax_hist.hist(
+    number_of_segments,
+    bins=np.arange(-0.5, max(number_of_segments) + 1.5),
+    color="#BADDAD",
+    edgecolor="black",
+)
 ax_hist.set_title("Number of Segments Histogram")
 ax_hist.set_xlabel("Number of Segments")
 ax_hist.set_ylabel("Frequency")
@@ -125,6 +140,7 @@ ax.pie(
     labels=["ASR", "KWS"],
     autopct="%1.1f%%",
     startangle=90,
+    colors=["#ABACAB", "#DEAFED"],
 )
 ax.axis("equal")
 st.pyplot(fig)
