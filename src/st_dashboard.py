@@ -116,7 +116,7 @@ ax_hist.set_ylabel("Frequency")
 st.pyplot(fig_hist)
 
 # segments duration histogram
-st.write("### segments Duration Histogram")
+st.write("### Segments Duration Histogram")
 MAX_SEGMENT_DURATION = 10
 fig_hist, ax_hist = plt.subplots(figsize=(12, 8))
 duration = [
@@ -125,6 +125,27 @@ duration = [
 ax_hist.hist(
     duration,
     bins=range(0, int(MAX_SEGMENT_DURATION)),
+    color="#EEFFAB",
+    edgecolor="black",
+)
+ax_hist.set_title("segment Duration Histogram")
+ax_hist.set_xlabel("Duration (seconds)")
+ax_hist.set_ylabel("Frequency")
+st.pyplot(fig_hist)
+
+# short sil duration histogram
+st.write("### Short Silence Duration Histogram")
+MAX_SILENCE_DURATION = 2
+short_sil_duration = []
+for call_sad_results in df["sad_result"]:
+    for i, j in zip(call_sad_results[:-1], call_sad_results[1:]):
+        short_sil_duration.append(i["end"] - j["start"])
+
+short_sil_duration = [min(i, MAX_SILENCE_DURATION) for i in short_sil_duration]
+fig_hist, ax_hist = plt.subplots(figsize=(12, 8))
+ax_hist.hist(
+    short_sil_duration,
+    bins=np.arange(0, int(MAX_SILENCE_DURATION), 0.1),
     color="#BEEFED",
     edgecolor="black",
 )
