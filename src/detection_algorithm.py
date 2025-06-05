@@ -35,6 +35,11 @@ def detect_answering_machine(call: Call) -> None:
     logger.info(f"Call ID: {call_id}")
     dialed_number = get_number(call_info.remoteUri)
     logger.info(f"Dialed number: {dialed_number}")
+    metadata_dict = {
+        "call_id": call_id,
+        "dialed_number": dialed_number,
+        "result": "",
+    }
 
     # audio recorder
     wav_writer = pj.AudioMediaRecorder()
@@ -48,6 +53,7 @@ def detect_answering_machine(call: Call) -> None:
 
     # start playing background noise
     playback_path = get_background_noise()
+    metadata_dict["playback"] = playback_path
     if playback_path:
         logger.info(f"{playback_path = }")
         playback_info = sf.info(playback_path)
@@ -89,6 +95,7 @@ def detect_answering_machine(call: Call) -> None:
                 kws_result = json.loads(kws_result)
                 if len(kws_result) > 0:
                     logger.info(f"Early AM detection @KWS")
+                    metadata_dict["reason"] = "early kws"
                     break_while = True
                     break
                 _, asr_results = recover_keys_and_results(f"asr_{call_id}_{index}_*")
@@ -98,6 +105,7 @@ def detect_answering_machine(call: Call) -> None:
                 )
                 if kw_in_asr_result:
                     logger.info(f"Early AM detection @ASR")
+                    metadata_dict["reason"] = "early asr"
                     break_while = True
                     break
         if break_while:
@@ -110,18 +118,20 @@ def detect_answering_machine(call: Call) -> None:
             continue
         new_buffer = parse_new_frames(appended_bytes, wav_info)
         sad_result = sad(new_buffer)
+        sad_results.extend(sad_result)
+        # calculate trailing silence
         audio_buffer_duration = get_sad_audio_buffer_duration(sad, fs)
+        last_segment_end = sad_results[-1]["end"] if sad_results else 0.0
+        tail_sil = audio_buffer_duration - last_segment_end
         if (
             len(sad_result) == 0
-            and audio_buffer_duration > Algorithm.max_tail_sil
+            and tail_sil > Algorithm.max_tail_sil
             and len(process_list) > 0
             and not sad.triggered
         ):
             logger.info("Silenced for a long time...")
             break
         if sad_result:
-            sad_results.append(sad_result[0])
-            tail_sil = audio_buffer_duration - sad_result[-1]["end"]
             logger.info(f"{tail_sil = }")
             # receiving segment
             logger.info(f"Silenced for a short time...")
@@ -149,14 +159,9 @@ def detect_answering_machine(call: Call) -> None:
             process = spawn_background_am_asr_kws(data, call_id, segment_number)
             process_list.append(process)
 
-    # create metadata dict
-    metadata_dict = {
-        "call_id": call_id,
-        "dialed_number": dialed_number,
-        "result": "",
-        "duration": time.time() - t0,
-        "sad_result": sad_results,
-    }
+    # update metadata dict
+    metadata_dict["sad_result"] = sad_results
+    metadata_dict["duration"] = time.time() - t0
     logger.info(f"{sad_results = }")
 
     # fetch history
@@ -177,6 +182,7 @@ def detect_answering_machine(call: Call) -> None:
         time.sleep(0.1)
         if time.time() - t1 > Algorithm.max_awaiting_ai:
             logger.info("ASR and KWS takes too long to finish...")
+            metadata_dict["last_segment_retrieve"] = time.time() - t1
             break
     process_duration = time.time() - t1
     asr_segment_results, kws_segment_results = recover_asr_kws_results(call_id)
@@ -191,19 +197,23 @@ def detect_answering_machine(call: Call) -> None:
     # asr string matching
     asr_repeat = (old_asr_result == asr_result) and (len(asr_result) > 0)
     logger.info(f"{asr_repeat = }")
+    metadata_dict["asr_repeat"] = asr_repeat
 
     # keyword spotting
     keywords_detected = len(kws_result) > 0
     logger.info(f"{keywords_detected = }")
+    metadata_dict["keywords_detected"] = keywords_detected
 
     # audio pattern matching
     audio_matching = AudioMatching()
     matching_result = audio_matching.match_segments(audio_segment, old_wav_obj)
     logger.info(f"{matching_result = }")
+    metadata_dict["matching_result"] = matching_result
 
     # search keywords in ASR result
     kw_in_asr_result = any([keyword in asr_result for keyword in KWSConfig.am_keywords])
     logger.info(f"{kw_in_asr_result = }")
+    metadata_dict["kw_in_asr_result"] = kw_in_asr_result
 
     # ensemble of results
     if asr_repeat or keywords_detected or matching_result or kw_in_asr_result:
