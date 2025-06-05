@@ -73,7 +73,8 @@ for call in calls:
     metadata = json.loads(metadata.read())
     metadata_list.append(metadata)
 df = pd.DataFrame(metadata_list)
-# st.data_editor(df)
+# extract sad results
+sad_results_agg = [segment for row in df["sad_result"] for segment in row]
 total_calls = len(metadata_list)
 
 st.success(
@@ -110,6 +111,24 @@ ax_hist.hist(
     edgecolor="black",
 )
 ax_hist.set_title("Call Duration Histogram")
+ax_hist.set_xlabel("Duration (seconds)")
+ax_hist.set_ylabel("Frequency")
+st.pyplot(fig_hist)
+
+# segments duration histogram
+st.write("### segments Duration Histogram")
+MAX_SEGMENT_DURATION = 10
+fig_hist, ax_hist = plt.subplots(figsize=(12, 8))
+duration = [
+    min(sad_result["duration"], MAX_SEGMENT_DURATION) for sad_result in sad_results_agg
+]
+ax_hist.hist(
+    duration,
+    bins=range(0, int(MAX_SEGMENT_DURATION)),
+    color="#BEEFED",
+    edgecolor="black",
+)
+ax_hist.set_title("segment Duration Histogram")
 ax_hist.set_xlabel("Duration (seconds)")
 ax_hist.set_ylabel("Frequency")
 st.pyplot(fig_hist)
