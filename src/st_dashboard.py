@@ -144,3 +144,47 @@ ax.pie(
 )
 ax.axis("equal")
 st.pyplot(fig)
+
+# early detection
+st.write("### Early detection")
+early_percent = (
+    sum([1 for i in df["reason"] if pd.notna(i) and "early" in i]) * 100 / total_calls
+)
+regular_percent = 100 - early_percent
+bar_height = 0.1
+fig, ax = plt.subplots(figsize=(6, 1))
+ax.barh(
+    0,
+    early_percent,
+    color="#F1B7B4",
+    edgecolor="none",
+    label="early",
+    height=bar_height,
+)
+ax.barh(
+    0,
+    regular_percent,
+    left=early_percent,
+    color="#BAD00D",
+    edgecolor="none",
+    label="regular",
+    height=bar_height,
+)
+ax.text(
+    early_percent / 2,
+    0,
+    f"early\n{early_percent:.1f} %",
+    ha="center",
+    va="center",
+)
+ax.text(
+    early_percent + regular_percent / 2,
+    0,
+    f"regular\n{regular_percent:.1f} %",
+    ha="center",
+    va="center",
+)
+ax.set_xlim(0, 100)
+ax.set_xticks([])
+ax.set_yticks([])
+st.pyplot(fig)
