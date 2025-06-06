@@ -108,6 +108,7 @@ def run_user_agent(
             "dialed_number": get_number(call.getInfo().remoteUri),
             "result": "exception",
             "duration": 0,
+            "asr_result": "",
         }
 
     # make decision based on the result of the algorithm
@@ -168,7 +169,6 @@ if __name__ == "__main__":
                 amd_dst=args.amd_dst,
                 non_amd_dst=args.non_amd_dst,
             )
-            time.sleep(10)
         except Exception as E:
             logger.info("exception at run_user_agent")
             logger.info(E)
