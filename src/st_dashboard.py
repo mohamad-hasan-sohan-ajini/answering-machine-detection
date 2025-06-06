@@ -74,7 +74,9 @@ for call in calls:
     metadata_list.append(metadata)
 df = pd.DataFrame(metadata_list)
 # extract sad results
-sad_results_agg = [segment for row in df["sad_result"] for segment in row]
+sad_results_agg = [
+    segment for row in df["sad_result"] if isinstance(row, list) for segment in row
+]
 total_calls = len(metadata_list)
 
 st.success(
@@ -138,6 +140,8 @@ st.write("### Short Silence Duration Histogram")
 MAX_SILENCE_DURATION = 2
 short_sil_duration = []
 for call_sad_results in df["sad_result"]:
+    if not isinstance(call_sad_results, list):
+        continue
     for i, j in zip(call_sad_results[:-1], call_sad_results[1:]):
         short_sil_duration.append(i["end"] - j["start"])
 
@@ -157,7 +161,7 @@ st.pyplot(fig_hist)
 # number of segments in each call
 st.write("### Segments/Call Histogram")
 fig_hist, ax_hist = plt.subplots(figsize=(12, 8))
-number_of_segments = [len(i) for i in df["sad_result"]]
+number_of_segments = [len(i) for i in df["sad_result"] if isinstance(i, list)]
 ax_hist.hist(
     number_of_segments,
     bins=np.arange(-0.5, max(number_of_segments) + 1.5),
