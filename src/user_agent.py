@@ -141,6 +141,7 @@ def run_user_agent(
         ep.libDestroy()
     except pj.Error:
         pass
+    del ep
     logger.info("Agent finished!")
     logger.info("*" * 100)
     return metadata_dict
@@ -167,6 +168,7 @@ if __name__ == "__main__":
                 amd_dst=args.amd_dst,
                 non_amd_dst=args.non_amd_dst,
             )
+            time.sleep(10)
         except Exception as E:
             logger.info("exception at run_user_agent")
             logger.info(E)
