@@ -1,8 +1,5 @@
-import multiprocessing
-import random
 import time
 from argparse import ArgumentParser
-from pathlib import Path
 
 import pjsua2 as pj
 import soundfile as sf
@@ -19,7 +16,8 @@ class Call(pj.Call):
         self.state_changed = True
 
     def onCallMediaState(self, prm):
-        print("media state changed")
+        for i in range(10):
+            print("*" * 80)
 
     def getInfo(self):
         self.state_changed = False
@@ -39,8 +37,6 @@ def call_amd_agent(
 
     # configure endpoint
     ep_cfg = pj.EpConfig()
-    ep_cfg.logConfig.level = 0
-    ep_cfg.logConfig.consoleLevel = 0
     ep.libInit(ep_cfg)
     ep.audDevManager().setNullDev()
 
@@ -113,20 +109,13 @@ def call_amd_agent(
         except:
             pass
 
-    print("Delete pjsua objects")
-    try:
-        player.stopTransmit(aud_med)
-    except:
-        pass
-    try:
-        wav_writer = None
-        player = None
-    except:
-        pass
+    print("*" * 100)
+    # del call
     try:
         del call
     except:
         pass
+    # del call_op_param
     try:
         del call_op_param
     except:
@@ -135,59 +124,27 @@ def call_amd_agent(
         del player
     except:
         pass
+    # Destroy the library
     try:
         ep.libDestroy()
     except:
         pass
 
 
-def call_amd_agent_wrapper(args_dict):
-    """Wrapper function to call 'call_amd_agent' with unpacked arguments."""
-    call_amd_agent(
-        domain=args_dict["domain"],
-        src_username=args_dict["src_username"],
-        src_password=args_dict["src_password"],
-        dst_username=args_dict["dst_username"],
-        playback_filename=args_dict["playback_filename"],
-    )
-
-
 if __name__ == "__main__":
-    # Usage Example: python mock_call.py --domain 127.0.0.1 --src-user-start 74001 --number-of-calls 1 --dst-num-start 85001 --playback-folder wavs
+    # usage (at home): python mock_call_single.py --domain 192.168.1.124 --dst-num 8501 --playback-file ../src/objects/f770ac70-3c32-40ce-9178-a4c782f6e40e.wav
     parser = ArgumentParser()
-    parser.add_argument("--domain", type=str, default="192.168.1.124")
-    parser.add_argument("--src-user-start", type=int, default=7401)
-    parser.add_argument("--number-of-calls", type=int, default=1)
-    parser.add_argument("--dst-num-start", type=int, default=8501)
-    parser.add_argument("--playback-folder", type=str, default="wavs")
+    parser.add_argument("--domain", type=str, default="127.0.0.1")
+    parser.add_argument("--src-user", type=str, default="7400")
+    parser.add_argument("--src-pass", type=str, default="pass7400")
+    parser.add_argument("--dst-num", type=str, default="8500")
+    parser.add_argument("--playback-file", type=str, default="George-crop2.wav")
     args = parser.parse_args()
-    playbacks_path = Path(args.playback_folder)
-    playbacks_files = list(playbacks_path.glob("*.wav"))
 
-    # processes
-    processes = []
-    for i in range(args.number_of_calls):
-        src_user = args.src_user_start + i
-        dst_num = args.dst_num_start + i
-        playback_file = str(random.choice(playbacks_files))
-        print(f"Calling {dst_num} from {src_user} with playback file {playback_file}")
-        args_dict = {
-            "domain": args.domain,
-            "src_username": str(src_user),
-            "src_password": "pass" + str(src_user),
-            "dst_username": str(dst_num),
-            "playback_filename": playback_file,
-        }
-        p = multiprocessing.Process(
-            target=call_amd_agent_wrapper,
-            args=(args_dict,),
-        )
-        processes.append(p)
-
-    # Start all processes
-    for p in processes:
-        p.start()
-
-    # Wait for all processes to finish
-    for p in processes:
-        p.join()
+    call_amd_agent(
+        domain=args.domain,
+        src_username=args.src_user,
+        src_password=args.src_pass,
+        dst_username=args.dst_num,
+        playback_filename=args.playback_file,
+    )
