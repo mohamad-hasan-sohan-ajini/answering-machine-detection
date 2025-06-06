@@ -146,7 +146,7 @@ fig_hist, ax_hist = plt.subplots(figsize=(12, 8))
 ax_hist.hist(
     short_sil_duration,
     bins=np.arange(0, int(MAX_SILENCE_DURATION), 0.1),
-    color="#BEEFED",
+    color="#CCB1F2",
     edgecolor="black",
 )
 ax_hist.set_title("segment Duration Histogram")
