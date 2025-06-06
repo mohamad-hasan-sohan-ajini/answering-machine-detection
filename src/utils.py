@@ -14,6 +14,7 @@ from multiprocessing import Process
 from pathlib import Path
 
 import numpy as np
+import pjsua2 as pj
 import requests
 import soundfile as sf
 import torch
@@ -87,6 +88,7 @@ def run_am_asr_kws(data):
         return "", "", "{}"
 
     def fetch_asr():
+        pj.Endpoint.instance().libRegisterThread("asr-worker")
         return requests.get(
             AIEndpoints.asr_decoder_endpoint,
             data=am_result,
