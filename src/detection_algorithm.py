@@ -38,6 +38,8 @@ def detect_answering_machine(call: Call) -> None:
     metadata_dict = {
         "call_id": call_id,
         "dialed_number": dialed_number,
+        "asr_result": "",
+        "kws_result": {},
         "result": "",
     }
 
