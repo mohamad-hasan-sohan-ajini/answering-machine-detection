@@ -19,6 +19,7 @@ class AIEndpoints:
     base_prediction_url: str = os.getenv("AI_SERVICES_ADDRESS")
     am_endpoint: str = f"{base_prediction_url}acoustic_model"
     asr_decoder_endpoint: str = f"{base_prediction_url}asr_decoder"
+    gender_detection: str = f"{base_prediction_url}gender_detection"
     timeout: float = 1
 
 
