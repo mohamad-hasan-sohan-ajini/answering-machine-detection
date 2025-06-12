@@ -182,7 +182,7 @@ def detect_answering_machine(call: Call) -> None:
     t1 = time.time()
     while any([process.is_alive() for process in process_list]):
         time.sleep(0.1)
-        if time.time() - t1 > Algorithm.max_awaiting_ai:
+        if time.time() - t1 > AIEndpoints.timeout:
             logger.info("ASR and KWS takes too long to finish...")
             metadata_dict["last_segment_retrieve"] = time.time() - t1
             break
