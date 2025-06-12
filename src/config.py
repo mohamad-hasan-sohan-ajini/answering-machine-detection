@@ -66,7 +66,6 @@ class Algorithm:
     expiration_time_second: int = 6000
     receiving_active_segment_sleep: float = 0.1
     receiving_silent_segment_sleep: float = 1.0
-    max_awaiting_ai: float = 1.5
     kws_threshold: float = 0.15
     background_noise_dir: str = str(file_path / "../playbacks/background")
 
