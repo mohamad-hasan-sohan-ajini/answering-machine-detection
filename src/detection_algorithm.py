@@ -8,13 +8,14 @@ import pjsua2 as pj
 import soundfile as sf
 
 from audio_matching import AudioMatching
-from config import Algorithm, KWSConfig
+from config import AIEndpoints, Algorithm, KWSConfig
 from custom_callbacks import Call
 
 from streamsad import SAD
 from utils import (
     aggregate_kws_results,
     convert_np_array_to_wav_file_bytes,
+    detect_gender,
     get_amd_record,
     get_background_noise,
     get_sad_audio_buffer_duration,
@@ -233,5 +234,26 @@ def detect_answering_machine(call: Call) -> None:
         player.stopTransmit(aud_med)
         del player
     aud_med.stopTransmit(wav_writer)
+
+    # detect gender
+    if sad_results:
+        playback_path = detect_gender(sad, sad_results, fs)
+    else:
+        playback_path = ""
+    logger.info(f"gender playback: {playback_path}")
+    metadata_dict["gender"] = playback_path
+    if playback_path:
+        logger.info(f"{playback_path = }")
+        playback_info = sf.info(playback_path)
+        logger.info(f"playback time: {playback_info.duration}")
+        player = pj.AudioMediaPlayer()
+        player.createPlayer(playback_path, pj.PJMEDIA_FILE_NO_LOOP)
+        player.startTransmit(aud_med)
+        time.sleep(playback_info.duration)
+        player.stopTransmit(aud_med)
+        del player
+    else:
+        logger.info("No playback...")
+
     logger.info("Return to UA")
     return metadata_dict
