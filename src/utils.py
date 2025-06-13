@@ -11,6 +11,7 @@ from base64 import b64decode
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Process
+from operator import itemgetter
 from pathlib import Path
 
 import numpy as np
@@ -31,6 +32,7 @@ from config import (
     KWSConfig,
     ObjectStorage,
     UserAgent,
+    gender_confidence_list,
 )
 from database import db_session
 from models import AMDRecord
@@ -349,3 +351,21 @@ def get_background_noise():
     if files:
         return str(np.random.choice(files))
     return ""
+
+
+def detect_gender(sad, sad_results, fs):
+    logger = get_logger()
+    longest_segment = max(sad_results, key=itemgetter("duration"))
+    audio_segment = sad.get_audio(longest_segment)
+    data = convert_np_array_to_wav_file_bytes(audio_segment, fs)
+    gender_detection_result = call_api_non_blocking(
+        AIEndpoints.gender_detection,
+        data,
+        {},
+        AIEndpoints.timeout,
+    )
+    if not gender_detection_result:
+        logger.warning("Check gender detection module...")
+        return ""
+    male = gender_detection_result["male"]
+    return gender_confidence_list[min(4, int(male / 0.2))]
