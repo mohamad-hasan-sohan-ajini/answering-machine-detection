@@ -181,3 +181,12 @@ class KWSConfig:
         "TO EIGHT PM",
         "TO NINE PM",
     ]
+
+
+gender_confidence_list: list[str] = [
+    str(file_path / "../playbacks/gender/Im-sure-its-a-woman.wav"),
+    str(file_path / "../playbacks/gender/I-think-its-a-woman.wav"),
+    str(file_path / "../playbacks/gender/Im-not-sure-whether-its-a-man-or-a-woman.wav"),
+    str(file_path / "../playbacks/gender/I-think-its-a-man.wav"),
+    str(file_path / "../playbacks/gender/Im-sure-its-a-man.wav"),
+]
