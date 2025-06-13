@@ -356,6 +356,7 @@ def get_background_noise():
 def detect_gender(sad, sad_results, fs):
     logger = get_logger()
     longest_segment = max(sad_results, key=itemgetter("duration"))
+    logger.info(f"Longest segment used for gender detection: {longest_segment}")
     audio_segment = sad.get_audio(longest_segment)
     data = convert_np_array_to_wav_file_bytes(audio_segment, fs)
     gender_detection_result = call_api_non_blocking(
@@ -367,5 +368,6 @@ def detect_gender(sad, sad_results, fs):
     if not gender_detection_result:
         logger.warning("Check gender detection module...")
         return ""
+    logger.info(f"{gender_detection_result = }")
     male = gender_detection_result["male"]
     return gender_confidence_list[min(4, int(male / 0.2))]
