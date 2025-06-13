@@ -349,8 +349,10 @@ def get_background_noise():
     path = Path(Algorithm.background_noise_dir)
     files = list(path.glob("*.wav"))
     if files:
-        return str(np.random.choice(files))
-    return ""
+        file_path = np.random.choice(files)
+        filename = file_path.name
+        return str(file_path), filename
+    return "", ""
 
 
 def detect_gender(sad, sad_results, fs):

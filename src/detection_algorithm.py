@@ -55,8 +55,8 @@ def detect_answering_machine(call: Call) -> None:
     aud_med.startTransmit(wav_writer)
 
     # start playing background noise
-    playback_path = get_background_noise()
-    metadata_dict["playback"] = playback_path
+    playback_path, playback_name = get_background_noise()
+    metadata_dict["playback"] = playback_name
     if playback_path:
         logger.info(f"{playback_path = }")
         playback_info = sf.info(playback_path)
