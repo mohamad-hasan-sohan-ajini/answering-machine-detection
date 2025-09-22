@@ -1,0 +1,41 @@
+# app.py
+import os
+from datetime import datetime
+from typing import List, Optional
+
+from flask import Flask, jsonify, request
+from flask_login import (
+    LoginManager,
+    current_user,
+    login_required,
+    login_user,
+    logout_user,
+)
+from sqlalchemy import update
+
+
+from database import db_session, init_db
+from models import Keyword, Status
+
+PORT = int(os.environ.get("PORT", 8000))
+app = Flask(__name__)
+app.secret_key = "9bee2f6c48c942a39461e688397e5346"
+init_db()
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({"status": "ok", "time": datetime.now().isoformat()})
+
+
+@app.route("/get_keywords", methods=["GET"])
+def get_keywords():
+    keywords = [k.as_dict() for k in db_session.query(Keyword).all()]
+    return jsonify(keywords)
+
+
+if __name__ == "__main__":
+    # For local dev only. Behind a real server, use gunicorn/uwsgi.
+    app.run(host="0.0.0.0", port=PORT, debug=True)
