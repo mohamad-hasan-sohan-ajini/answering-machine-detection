@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from typing import List, Optional
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, render_template, request
 from flask_login import (
     LoginManager,
     current_user,
@@ -21,8 +21,8 @@ PORT = int(os.environ.get("PORT", 8000))
 app = Flask(__name__)
 app.secret_key = "9bee2f6c48c942a39461e688397e5346"
 init_db()
-login_manager = LoginManager()
-login_manager.init_app(app)
+login_manager = LoginManager(app)
+login_manager.login_view = "login"
 
 
 @app.route("/health", methods=["GET"])
@@ -34,6 +34,39 @@ def health():
 def get_keywords():
     keywords = [k.word for k in db_session.query(Keyword).all()]
     return jsonify(keywords)
+
+
+@app.route("/update_keywords", methods=["GET", "POST"])
+@login_manager.user_loader
+def update_keywords():
+    # list confirmed and pending keywords
+    confirmed_keywords = [
+        k.word
+        for k in db_session.query(Keyword)
+        .join(Status)
+        .filter(Status.status == "confirmed")
+        .all()
+    ]
+    pending_keywords = [
+        k.word
+        for k in db_session.query(Keyword)
+        .join(Status)
+        .filter(Status.status == "pending")
+        .all()
+    ]
+    # methods
+    if request.method == "POST":
+        return "NO ANSWER"
+    else:
+        try:
+            text = render_template(
+                "update_keywords.html",
+                confirmed_keywords=confirmed_keywords,
+                pending_keywords=pending_keywords,
+            )
+        except Exception as e:
+            text = f"Error rendering template: {e}"
+        return text
 
 
 if __name__ == "__main__":

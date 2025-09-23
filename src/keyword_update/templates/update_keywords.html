@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Keyword Manager</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; }
+    h2 { margin-top: 2rem; }
+    .word-list { list-style-type: none; padding: 0; }
+    .word-item { margin: 0.3rem 0; }
+    .word-item input[type="checkbox"] { margin-right: 0.5rem; }
+    .submit-btn { margin-top: 1.5rem; padding: 0.6rem 1.2rem; }
+  </style>
+</head>
+<body>
+  <h1>Keyword Manager</h1>
+
+  <form method="post" action="{{ url_for('update_keywords') }}">
+    <!-- Confirmed Keywords -->
+    <h2>Confirmed Keywords</h2>
+    <ul class="word-list">
+      {% for word in confirmed_keywords %}
+        <li class="word-item">
+          <label>
+            <input type="checkbox" name="keywords" value="{{ word }}" checked>
+            {{ word }}
+          </label>
+        </li>
+      {% endfor %}
+    </ul>
+
+    <!-- Pending Words -->
+    <h2>Pending Words</h2>
+    <ul class="word-list">
+      {% for word in pending_words %}
+        <li class="word-item">
+          <label>
+            <input type="checkbox" name="keywords" value="{{ word }}">
+            {{ word }}
+          </label>
+        </li>
+      {% endfor %}
+    </ul>
+
+    <button type="submit" class="submit-btn">Submit</button>
+  </form>
+</body>
+</html>
