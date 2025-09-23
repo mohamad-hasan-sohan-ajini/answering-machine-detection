@@ -16,6 +16,7 @@ from utils import (
     aggregate_kws_results,
     convert_np_array_to_wav_file_bytes,
     detect_gender,
+    get_am_keywords,
     get_amd_record,
     get_background_noise,
     get_sad_audio_buffer_duration,
@@ -31,6 +32,7 @@ from utils import (
 def detect_answering_machine(call: Call) -> None:
     """Detect answering machine."""
     logger = get_logger()
+    am_keywords = get_am_keywords()
     call_info = call.getInfo()
     call_id = call_info.callIdString
     logger.info(f"Call ID: {call_id}")
@@ -103,9 +105,7 @@ def detect_answering_machine(call: Call) -> None:
                     break
                 _, asr_results = recover_keys_and_results(f"asr_{call_id}_{index}_*")
                 asr_result = asr_results[0]
-                kw_in_asr_result = any(
-                    [kw in asr_result for kw in KWSConfig.am_keywords]
-                )
+                kw_in_asr_result = any([kw in asr_result for kw in am_keywords])
                 if kw_in_asr_result:
                     logger.info(f"Early AM detection @ASR")
                     metadata_dict["reason"] = "early asr"
@@ -214,7 +214,7 @@ def detect_answering_machine(call: Call) -> None:
     metadata_dict["matching_result"] = matching_result
 
     # search keywords in ASR result
-    kw_in_asr_result = any([keyword in asr_result for keyword in KWSConfig.am_keywords])
+    kw_in_asr_result = any([keyword in asr_result for keyword in am_keywords])
     logger.info(f"{kw_in_asr_result = }")
     metadata_dict["kw_in_asr_result"] = kw_in_asr_result
 
