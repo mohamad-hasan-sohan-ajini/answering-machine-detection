@@ -32,7 +32,7 @@ def health():
 
 @app.route("/get_keywords", methods=["GET"])
 def get_keywords():
-    keywords = [k.as_dict() for k in db_session.query(Keyword).all()]
+    keywords = [k.word for k in db_session.query(Keyword).all()]
     return jsonify(keywords)
 
 
