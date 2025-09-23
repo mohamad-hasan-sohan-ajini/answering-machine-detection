@@ -9,7 +9,7 @@ import soundfile as sf
 from streamsad import SAD
 
 from audio_matching import AudioMatching
-from config import AIEndpoints, Algorithm, KWSConfig
+from config import AIEndpoints, Algorithm
 from custom_callbacks import Call
 from utils import (
     aggregate_kws_results,
