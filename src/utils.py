@@ -333,6 +333,14 @@ def get_sad_audio_buffer_duration(sad, fs):
     return sad.input_audio_buffer.shape[0] / fs
 
 
+def get_am_keywords():
+    try:
+        am_keywords = requests.get(KWSConfig.am_keywords_url, timeout=0.1).json()
+    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
+        am_keywords = KWSConfig.am_keywords
+    return am_keywords
+
+
 def get_kws_decoder():
     decoder = KWSDecoder(KWSConfig.alphabet, KWSConfig.blank_index)
     decoder.set_beam_width(KWSConfig.beam_width)
@@ -341,7 +349,8 @@ def get_kws_decoder():
     decoder.set_min_clip(KWSConfig.clip_char_prob)
     decoder.set_min_keyword_score(KWSConfig.min_keyword_score)
     decoder.set_top_n(KWSConfig.top_n)
-    decoder.add_words(KWSConfig.am_keywords)
+    keywords = get_am_keywords()
+    decoder.add_words(keywords)
     return decoder
 
 
