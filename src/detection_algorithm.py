@@ -6,12 +6,11 @@ import time
 import numpy as np
 import pjsua2 as pj
 import soundfile as sf
+from streamsad import SAD
 
 from audio_matching import AudioMatching
 from config import AIEndpoints, Algorithm, KWSConfig
 from custom_callbacks import Call
-
-from streamsad import SAD
 from utils import (
     aggregate_kws_results,
     convert_np_array_to_wav_file_bytes,
@@ -19,9 +18,9 @@ from utils import (
     get_am_keywords,
     get_amd_record,
     get_background_noise,
-    get_sad_audio_buffer_duration,
     get_logger,
     get_number,
+    get_sad_audio_buffer_duration,
     parse_new_frames,
     recover_asr_kws_results,
     recover_keys_and_results,
