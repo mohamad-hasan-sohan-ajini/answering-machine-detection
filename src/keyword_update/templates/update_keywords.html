@@ -17,12 +17,12 @@
 
   <form method="post" action="{{ url_for('update_keywords') }}">
     <!-- Confirmed Keywords -->
-    <h2>Confirmed Keywords</h2>
+    <h2>Confirmed Keywords (uncheck to remove)</h2>
     <ul class="word-list">
       {% for word in confirmed_keywords %}
         <li class="word-item">
           <label>
-            <input type="checkbox" name="keywords" value="{{ word }}" checked>
+            <input type="checkbox" name="{{ word }}" value="confirmed" checked>
             {{ word }}
           </label>
         </li>
@@ -30,12 +30,12 @@
     </ul>
 
     <!-- Pending Words -->
-    <h2>Pending Words</h2>
+    <h2>Pending Words (check to add)</h2>
     <ul class="word-list">
-      {% for word in pending_words %}
+      {% for word in pending_keywords %}
         <li class="word-item">
           <label>
-            <input type="checkbox" name="keywords" value="{{ word }}">
+            <input type="checkbox" name="{{ word }}" value="pending">
             {{ word }}
           </label>
         </li>

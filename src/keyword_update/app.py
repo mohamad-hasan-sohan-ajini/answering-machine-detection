@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from typing import List, Optional
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, redirect, render_template, request, url_for
 from flask_login import (
     LoginManager,
     current_user,
@@ -16,6 +16,7 @@ from sqlalchemy import update
 
 from database import db_session, init_db
 from models import Keyword, Status
+from utils import get_confirmed_words, get_pending_words, impose_form
 
 PORT = int(os.environ.get("PORT", 8000))
 app = Flask(__name__)
@@ -39,34 +40,15 @@ def get_keywords():
 @app.route("/update_keywords", methods=["GET", "POST"])
 @login_manager.user_loader
 def update_keywords():
-    # list confirmed and pending keywords
-    confirmed_keywords = [
-        k.word
-        for k in db_session.query(Keyword)
-        .join(Status)
-        .filter(Status.status == "confirmed")
-        .all()
-    ]
-    pending_keywords = [
-        k.word
-        for k in db_session.query(Keyword)
-        .join(Status)
-        .filter(Status.status == "pending")
-        .all()
-    ]
-    # methods
     if request.method == "POST":
-        return "NO ANSWER"
+        impose_form(request.form)
+        return redirect(url_for("update_keywords"))
     else:
-        try:
-            text = render_template(
-                "update_keywords.html",
-                confirmed_keywords=confirmed_keywords,
-                pending_keywords=pending_keywords,
-            )
-        except Exception as e:
-            text = f"Error rendering template: {e}"
-        return text
+        return render_template(
+            "update_keywords.html",
+            confirmed_keywords=get_confirmed_words(),
+            pending_keywords=get_pending_words(),
+        )
 
 
 if __name__ == "__main__":

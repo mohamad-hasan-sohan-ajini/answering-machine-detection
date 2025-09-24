@@ -8,7 +8,7 @@ class Status(Base):
     __tablename__ = "status"
 
     id = Column(Integer, primary_key=True)
-    status = Column(String(32), nullable=False, unique=True)
+    status = Column(String(32), nullable=False)
 
     # relationship back to keywords
     keywords = relationship("Keyword", back_populates="status")
@@ -23,8 +23,6 @@ class Keyword(Base):
     id = Column(Integer, primary_key=True)
     word = Column(String(256), nullable=False)
     date = Column(Date, nullable=False)
-
-    # foreign key to Status
     status_id = Column(Integer, ForeignKey("status.id"), nullable=False)
 
     # relationship object
