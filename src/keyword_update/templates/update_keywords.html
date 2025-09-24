@@ -14,33 +14,38 @@
 </head>
 <body>
   <h1>Keyword Manager</h1>
+<form method="post" action="{{ url_for('update_keywords') }}">
+    <div style="display: flex; gap: 2rem;">
+        <!-- Confirmed Keywords -->
+        <div style="flex: 1;">
+            <h2>Confirmed Keywords (uncheck to remove)</h2>
+            <ul class="word-list">
+                {% for word in confirmed_keywords %}
+                    <li class="word-item">
+                        <label>
+                            <input type="checkbox" name="{{ word }}" value="confirmed" checked>
+                            {{ word }}
+                        </label>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
 
-  <form method="post" action="{{ url_for('update_keywords') }}">
-    <!-- Confirmed Keywords -->
-    <h2>Confirmed Keywords (uncheck to remove)</h2>
-    <ul class="word-list">
-      {% for word in confirmed_keywords %}
-        <li class="word-item">
-          <label>
-            <input type="checkbox" name="{{ word }}" value="confirmed" checked>
-            {{ word }}
-          </label>
-        </li>
-      {% endfor %}
-    </ul>
-
-    <!-- Pending Words -->
-    <h2>Pending Words (check to add)</h2>
-    <ul class="word-list">
-      {% for word in pending_keywords %}
-        <li class="word-item">
-          <label>
-            <input type="checkbox" name="{{ word }}" value="pending">
-            {{ word }}
-          </label>
-        </li>
-      {% endfor %}
-    </ul>
+        <!-- Pending Words -->
+        <div style="flex: 1;">
+            <h2>Pending Words (check to add)</h2>
+            <ul class="word-list">
+                {% for word in pending_keywords %}
+                    <li class="word-item">
+                        <label>
+                            <input type="checkbox" name="{{ word }}" value="pending">
+                            {{ word }}
+                        </label>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
 
     <button type="submit" class="submit-btn">Submit</button>
   </form>
