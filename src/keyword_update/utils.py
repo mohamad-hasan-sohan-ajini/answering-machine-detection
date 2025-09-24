@@ -16,7 +16,7 @@ def get_confirmed_words():
         .filter(Status.status == "confirmed")
         .all()
     ]
-    return confirmed_keywords
+    return sorted(confirmed_keywords)
 
 
 def get_pending_words():
@@ -27,7 +27,7 @@ def get_pending_words():
         .filter(Status.status == "pending")
         .all()
     ]
-    return pending_keywords
+    return sorted(pending_keywords)
 
 
 def impose_form(form):
