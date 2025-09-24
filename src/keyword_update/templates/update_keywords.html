@@ -14,40 +14,65 @@
 </head>
 <body>
   <h1>Keyword Manager</h1>
+
 <form method="post" action="{{ url_for('update_keywords') }}">
     <div style="display: flex; gap: 2rem;">
         <!-- Confirmed Keywords -->
         <div style="flex: 1;">
-            <h2>Confirmed Keywords (uncheck to remove)</h2>
-            <ul class="word-list">
-                {% for word in confirmed_keywords %}
-                    <li class="word-item">
-                        <label>
-                            <input type="checkbox" name="{{ word }}" value="confirmed" checked>
-                            {{ word }}
-                        </label>
-                    </li>
-                {% endfor %}
-            </ul>
+            <h2>Confirmed Keywords (uncheck to pend)</h2>
+            <div style="display: flex; gap: 1rem;">
+                <ul class="word-list" style="flex: 1;">
+                    {% for word in confirmed_keywords[0::2] %}
+                        <li class="word-item">
+                            <label>
+                                <input type="checkbox" name="{{ word }}" value="confirmed" checked>
+                                {{ word }}
+                            </label>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <ul class="word-list" style="flex: 1;">
+                    {% for word in confirmed_keywords[1::2] %}
+                        <li class="word-item">
+                            <label>
+                                <input type="checkbox" name="{{ word }}" value="confirmed" checked>
+                                {{ word }}
+                            </label>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
 
         <!-- Pending Words -->
         <div style="flex: 1;">
-            <h2>Pending Words (check to add)</h2>
-            <ul class="word-list">
-                {% for word in pending_keywords %}
-                    <li class="word-item">
-                        <label>
-                            <input type="checkbox" name="{{ word }}" value="pending">
-                            {{ word }}
-                        </label>
-                    </li>
-                {% endfor %}
-            </ul>
+            <h2>Pending Words (check to confirm)</h2>
+            <div style="display: flex; gap: 1rem;">
+                <ul class="word-list" style="flex: 1;">
+                    {% for word in pending_keywords[0::2] %}
+                        <li class="word-item">
+                            <label>
+                                <input type="checkbox" name="{{ word }}" value="pending">
+                                {{ word }}
+                            </label>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <ul class="word-list" style="flex: 1;">
+                    {% for word in pending_keywords[1::2] %}
+                        <li class="word-item">
+                            <label>
+                                <input type="checkbox" name="{{ word }}" value="pending">
+                                {{ word }}
+                            </label>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
     </div>
 
     <button type="submit" class="submit-btn">Submit</button>
-  </form>
+</form>
 </body>
 </html>

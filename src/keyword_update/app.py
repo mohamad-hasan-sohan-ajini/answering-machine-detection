@@ -51,6 +51,18 @@ def update_keywords():
         )
 
 
+@app.route("/add_keywords", methods=["GET", "POST"])
+@login_manager.user_loader
+def add_keywords():
+    pass
+
+
+@app.route("/remove_keywords", methods=["GET", "POST"])
+@login_manager.user_loader
+def remove_keywords():
+    pass
+
+
 if __name__ == "__main__":
     # For local dev only. Behind a real server, use gunicorn/uwsgi.
     app.run(host="0.0.0.0", port=PORT, debug=True)
