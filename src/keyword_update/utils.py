@@ -30,7 +30,7 @@ def get_pending_words():
     return sorted(pending_keywords)
 
 
-def impose_form(form):
+def sync_keywords_with_form(form):
     # print(form)
     confirmed_at_db = set(get_confirmed_words())
     pending_at_db = set(get_pending_words())
@@ -59,4 +59,25 @@ def impose_form(form):
                 .where(Keyword.word == word)
                 .values(status_id=1, date=date)
             )
+    db_session.commit()
+
+
+def add_to_confirmed_keywords(form):
+    print(list(form.values()))
+    for word in form.values():
+        if len(word) < 4:
+            continue
+        word = word.strip().upper()
+        existing_keyword = (
+            db_session.query(Keyword).filter(Keyword.word == word).one_or_none()
+        )
+        if existing_keyword is not None:
+            print(f"Keyword '{word}' already exists, skipping.")
+            continue
+        new_keyword = Keyword(
+            word=word,
+            date=datetime.now().date(),
+            status_id=1,
+        )
+        db_session.add(new_keyword)
     db_session.commit()

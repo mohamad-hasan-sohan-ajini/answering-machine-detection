@@ -16,7 +16,12 @@ from sqlalchemy import update
 
 from database import db_session, init_db
 from models import Keyword, Status
-from utils import get_confirmed_words, get_pending_words, impose_form
+from utils import (
+    add_to_confirmed_keywords,
+    get_confirmed_words,
+    get_pending_words,
+    sync_keywords_with_form,
+)
 
 PORT = int(os.environ.get("PORT", 8000))
 app = Flask(__name__)
@@ -40,7 +45,7 @@ def get_keywords():
 @login_manager.user_loader
 def update_keywords():
     if request.method == "POST":
-        impose_form(request.form)
+        sync_keywords_with_form(request.form)
         return redirect(url_for("update_keywords"))
     else:
         return render_template(
@@ -53,13 +58,20 @@ def update_keywords():
 @app.route("/add_keywords", methods=["GET", "POST"])
 @login_manager.user_loader
 def add_keywords():
-    pass
+    if request.method == "POST":
+        add_to_confirmed_keywords(request.form)
+        return redirect(url_for("add_keywords"))
+    else:
+        return render_template("add_keywords.html")
 
 
 @app.route("/remove_keywords", methods=["GET", "POST"])
 @login_manager.user_loader
 def remove_keywords():
-    pass
+    if request.method == "POST":
+        ...
+    else:
+        ...
 
 
 if __name__ == "__main__":
