@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Keywords</title>
+    <style>
+        .keyword-input-row { margin-bottom: 0.5rem; }
+        .plus-btn { margin-left: 0.5rem; }
+        .submit-btn { margin-top: 1rem; }
+    </style>
+    <script>
+        let keywordCount = 1;
+        function addKeywordInput() {
+            const container = document.getElementById('keywords-container');
+            const div = document.createElement('div');
+            div.className = 'keyword-input-row';
+            div.innerHTML = `<input type="text" name="keyword${keywordCount}" placeholder="Enter keyword">`;
+            container.appendChild(div);
+            keywordCount++;
+        }
+        window.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('plus-btn').addEventListener('click', function(e) {
+                e.preventDefault();
+                addKeywordInput();
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Add Keywords</h1>
+    <form method="post" action="{{ url_for('add_keywords') }}">
+        <div id="keywords-container">
+            <div class="keyword-input-row">
+                <input type="text" name="keyword0" placeholder="Enter keyword">
+            </div>
+        </div>
+        <button id="plus-btn" class="plus-btn">+</button>
+        <br>
+        <button type="submit" class="submit-btn">Submit</button>
+    </form>
+</body>
+</html>
