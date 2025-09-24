@@ -33,8 +33,7 @@ def health():
 
 @app.route("/get_keywords", methods=["GET"])
 def get_keywords():
-    keywords = [k.word for k in db_session.query(Keyword).all()]
-    return jsonify(keywords)
+    return jsonify(get_confirmed_words())
 
 
 @app.route("/update_keywords", methods=["GET", "POST"])
