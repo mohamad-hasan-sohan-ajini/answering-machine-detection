@@ -7,6 +7,12 @@ from models import Keyword, Status
 
 init_db()
 
+# STATUS
+CONFIRMED_STATUS = 1
+PENDING_STATUS = 2
+
+MIN_KEYWORD_LENGTH = 5
+
 
 def get_confirmed_words():
     confirmed_keywords = [
@@ -49,7 +55,7 @@ def sync_keywords_with_form(form):
             db_session.execute(
                 update(Keyword)
                 .where(Keyword.word == word)
-                .values(status_id=2, date=date)
+                .values(status_id=PENDING_STATUS, date=date)
             )
         # pending => confirmed
         elif word in pending_at_db and word in pending_at_form:
@@ -62,10 +68,10 @@ def sync_keywords_with_form(form):
     db_session.commit()
 
 
-def add_to_confirmed_keywords(form):
-    print(list(form.values()))
+def add_keywords(form, status="confirmed"):
+    status_code = CONFIRMED_STATUS if status == "confirmed" else PENDING_STATUS
     for word in form.values():
-        if len(word) < 4:
+        if len(word) <= MIN_KEYWORD_LENGTH:
             continue
         word = word.strip().upper()
         existing_keyword = (
@@ -77,7 +83,7 @@ def add_to_confirmed_keywords(form):
         new_keyword = Keyword(
             word=word,
             date=datetime.now().date(),
-            status_id=1,
+            status_id=status_code,
         )
         db_session.add(new_keyword)
     db_session.commit()
