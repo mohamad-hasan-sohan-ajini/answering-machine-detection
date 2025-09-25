@@ -17,7 +17,7 @@ from sqlalchemy import update
 from database import db_session, init_db
 from models import Keyword, Status
 from utils import (
-    add_to_confirmed_keywords,
+    add_keywords,
     get_confirmed_words,
     get_pending_words,
     sync_keywords_with_form,
@@ -55,14 +55,30 @@ def update_keywords():
         )
 
 
-@app.route("/add_keywords", methods=["GET", "POST"])
+@app.route("/add_confirmed_keywords", methods=["GET", "POST"])
 @login_manager.user_loader
-def add_keywords():
+def add_confirmed_keywords():
     if request.method == "POST":
-        add_to_confirmed_keywords(request.form)
-        return redirect(url_for("add_keywords"))
+        add_keywords(request.form, "confirmed")
+        return redirect(url_for("add_confirmed_keywords"))
     else:
-        return render_template("add_keywords.html")
+        return render_template(
+            "add_keywords.html",
+            destination_url="add_confirmed_keywords",
+        )
+
+
+@app.route("/add_pending_keywords", methods=["GET", "POST"])
+@login_manager.user_loader
+def add_pending_keywords():
+    if request.method == "POST":
+        add_keywords(request.form, "pending")
+        return redirect(url_for("add_pending_keywords"))
+    else:
+        return render_template(
+            "add_keywords.html",
+            destination_url="add_pending_keywords",
+        )
 
 
 @app.route("/remove_keywords", methods=["GET", "POST"])
