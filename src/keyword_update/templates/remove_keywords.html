@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Remove Keywords</title>
+    <style>
+        .keyword-list { list-style-type: none; padding: 0; }
+        .keyword-item { margin-bottom: 0.5rem; }
+        .submit-btn { margin-top: 1rem; }
+    </style>
+</head>
+<body>
+    <h1>Remove Keywords (check to remove)</h1>
+    <form method="post" action="{{ url_for('remove_keywords') }}">
+        <ul class="keyword-list">
+            {% for word in keywords %}
+                <li class="keyword-item">
+                    <label>
+                        <input type="checkbox" name="keyword{{ loop.index0 }}" value="{{ word }}">
+                        {{ word }}
+                    </label>
+                </li>
+            {% endfor %}
+        </ul>
+        <button type="submit" class="submit-btn">Remove Selected</button>
+    </form>
+</body>
+</html>

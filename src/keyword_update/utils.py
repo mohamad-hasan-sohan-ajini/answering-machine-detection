@@ -36,6 +36,10 @@ def get_pending_words():
     return sorted(pending_keywords)
 
 
+def get_all_keywords():
+    return sorted(get_confirmed_words() + get_pending_words())
+
+
 def sync_keywords_with_form(form):
     # print(form)
     confirmed_at_db = set(get_confirmed_words())
@@ -86,4 +90,17 @@ def add_keywords(form, status="confirmed"):
             status_id=status_code,
         )
         db_session.add(new_keyword)
+    db_session.commit()
+
+
+def remove_from_db(form):
+    for word in form.values():
+        word = word.strip().upper()
+        existing_keyword = (
+            db_session.query(Keyword).filter(Keyword.word == word).one_or_none()
+        )
+        if existing_keyword is None:
+            print(f"Keyword '{word}' does not exist, skipping.")
+            continue
+        db_session.delete(existing_keyword)
     db_session.commit()

@@ -14,12 +14,13 @@ from flask_login import (
 from sqlalchemy import update
 
 
-from database import db_session, init_db
-from models import Keyword, Status
+from database import init_db
 from utils import (
     add_keywords,
+    get_all_keywords,
     get_confirmed_words,
     get_pending_words,
+    remove_from_db,
     sync_keywords_with_form,
 )
 
@@ -87,9 +88,13 @@ def add_pending_keywords():
 @login_manager.user_loader
 def remove_keywords():
     if request.method == "POST":
-        ...
+        remove_from_db(request.form)
+        return redirect(url_for("remove_keywords"))
     else:
-        ...
+        return render_template(
+            "remove_keywords.html",
+            keywords=get_all_keywords(),
+        )
 
 
 if __name__ == "__main__":
