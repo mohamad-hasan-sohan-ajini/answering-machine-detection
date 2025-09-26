@@ -65,6 +65,7 @@ def add_confirmed_keywords():
         return render_template(
             "add_keywords.html",
             destination_url="add_confirmed_keywords",
+            page_title="Add Keywords (Confirmed)",
         )
 
 
@@ -78,6 +79,7 @@ def add_pending_keywords():
         return render_template(
             "add_keywords.html",
             destination_url="add_pending_keywords",
+            page_title="Add Keywords (Pending)",
         )
 
 

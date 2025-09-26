@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Add Keywords</title>
+    <title>{{ page_title }}</title>
+
     <style>
         .keyword-input-row { margin-bottom: 0.5rem; }
         .plus-btn { margin-left: 0.5rem; }
@@ -27,7 +28,7 @@
     </script>
 </head>
 <body>
-    <h1>Add Keywords</h1>
+    <h1>{{ page_title }}</h1>
     <form method="post" action="{{ url_for(destination_url) }}">
         <div id="keywords-container">
             <div class="keyword-input-row">
