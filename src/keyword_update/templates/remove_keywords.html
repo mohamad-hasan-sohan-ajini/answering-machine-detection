@@ -17,7 +17,7 @@
 </head>
 <body>
     <h1>Remove Keywords (check to remove)</h1>
-    <form method="post" action="{{ url_for('remove_keywords') }}">
+    <form method="post" action="{{ url_for(destination_url) }}">
         <ul class="keywords-grid">
             {% for word in keywords %}
                 <li class="keyword-item">
