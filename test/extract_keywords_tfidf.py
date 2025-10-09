@@ -5,9 +5,9 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.styles import Font
 
 # ---------- AM ----------
-segments = open("am").read().strip().split("\n")
+segments = open("/home/navid/am").read().strip().split("\n")
 
-vectorizer = TfidfVectorizer(stop_words='english', ngram_range=(1, 2))
+vectorizer = TfidfVectorizer(stop_words='english', ngram_range=(2, 3))
 tfidf_matrix = vectorizer.fit_transform(segments)
 
 feature_names = vectorizer.get_feature_names_out()
@@ -22,7 +22,7 @@ df_keywords_am = df_keywords_am[df_keywords_am['keyword'].str.len() >= 5]
 df_keywords_am = df_keywords_am.sort_values(by='score', ascending=False).head(20)
 
 # ---------- LIVE ----------
-segments = open("live").read().strip().split("\n")
+segments = open("/home/navid/live").read().strip().split("\n")
 
 vectorizer = TfidfVectorizer(stop_words='english', ngram_range=(1, 2))
 tfidf_matrix = vectorizer.fit_transform(segments)
@@ -51,11 +51,11 @@ combined = pd.concat(
 )
 
 # Write to Excel
-with pd.ExcelWriter("tfidf.xlsx", engine='openpyxl') as writer:
+with pd.ExcelWriter("/home/navid/tfidf.xlsx", engine='openpyxl') as writer:
     combined.to_excel(writer, index=False, sheet_name="TF-IDF Combined", startrow=1)
 
 # Add titles manually at the top
-wb = load_workbook("tfidf.xlsx")
+wb = load_workbook("/home/navid/tfidf.xlsx")
 ws = wb["TF-IDF Combined"]
 
 # Titles row
@@ -67,6 +67,6 @@ ws["G1"] = "AM tf-idf (>0.05) Except Non-AM"
 for cell in ["A1", "D1", "G1"]:
     ws[cell].font = Font(bold=True)
 
-wb.save("tfidf.xlsx")
+wb.save("/home/navid/tfidf.xlsx")
 print("✅ tfidf.xlsx created with all tables side-by-side and labeled.")
 
