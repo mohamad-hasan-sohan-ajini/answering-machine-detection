@@ -1,0 +1,17 @@
+[Unit]
+Description=Awaiting Keywords API Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/bin/bash -c 'log_file="/root/answering-machine-detection/log/log-api-$(uuidgen).txt" && source /root/.bashrc && /root/venv/bin/python /root/answering-machine-detection/src/keyword_update/app.py > "$log_file" 2>&1'
+Restart=always
+RestartSec=3
+Environment="PATH=/usr/local/bin:/usr/bin"
+TimeoutStartSec=infinity
+StandardOutput=journal
+RemainAfterExit=true
+User=root
+
+[Install]
+WantedBy=multi-user.target
