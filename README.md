@@ -23,6 +23,7 @@ CREATE TABLE amd_table_0 (
     call_duration FLOAT,
     asr_result TEXT
 );
+CREATE ROLE amd_agent WITH LOGIN PASSWORD 'amd_agent_password';
 GRANT ALL PRIVILEGES ON TABLE amd_table_0 TO amd_agent;
 ```
 
@@ -32,3 +33,12 @@ To manually export environment variables:
 ```
 export $(grep -v '^#' .env | xargs)
 ```
+
+If this error is seen in asterisk:\n
+"radcli: rc_avpair_new: rc_avpair_new: no attribute 22736/101 in dictionary"\n
+add these lines to "/etc/asterisk/modules.conf"
+```bash
+noload => cdr_radius.so
+noload => cel_radius.so
+```
+
