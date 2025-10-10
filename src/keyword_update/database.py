@@ -1,9 +1,13 @@
 import os
+from pathlib import Path
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker, declarative_base
+from sqlalchemy.orm import declarative_base, scoped_session, sessionmaker
 
-DB_PATH = os.environ.get("KEYWORDS_DB", "sqlite:///keywords.db")
+file_path = Path(__file__).resolve()
+parent_dir = file_path.parent
+
+DB_PATH = os.environ.get("KEYWORDS_DB", f"sqlite:///{str(parent_dir)}/keywords.db")
 
 engine = create_engine(DB_PATH)
 db_session = scoped_session(

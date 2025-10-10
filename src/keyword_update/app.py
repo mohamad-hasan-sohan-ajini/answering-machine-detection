@@ -1,6 +1,8 @@
 # app.py
 import os
+import sys
 from datetime import datetime
+from pathlib import Path
 from typing import List, Optional
 
 from flask import Flask, jsonify, redirect, render_template, request, url_for
@@ -12,6 +14,10 @@ from flask_login import (
     logout_user,
 )
 from sqlalchemy import update
+
+file_path = Path(__file__).resolve()
+parent_dir = file_path.parent
+sys.path.insert(0, str(parent_dir))
 
 
 from database import init_db
@@ -69,6 +75,7 @@ def add_confirmed_keywords():
             page_title="Add Keywords (Confirmed)",
         )
 
+
 @app.route("/add_pending_keywords", methods=["GET", "POST"])
 @login_manager.user_loader
 def add_pending_keywords():
@@ -82,11 +89,15 @@ def add_pending_keywords():
             page_title="Add Keywords (Pending)",
         )
 
+
 @app.route("/api/add_pending_keywords", methods=["POST"])
 def api_pending_keywords():
     data = request.get_json(silent=True)
     if not data or not isinstance(data, dict):
-        return jsonify({"error": "Invalid or missing JSON data", "status": "failed"}), 400
+        return (
+            jsonify({"error": "Invalid or missing JSON data", "status": "failed"}),
+            400,
+        )
 
     valid = all(isinstance(value, str) for key, value in data.items())
 
@@ -95,7 +106,16 @@ def api_pending_keywords():
 
     try:
         description = add_keywords(data, "pending")
-        return jsonify({"message": f"{len(data)} Keywords added successfully", "description": description, "status": "success"}), 201
+        return (
+            jsonify(
+                {
+                    "message": f"{len(data)} Keywords added successfully",
+                    "description": description,
+                    "status": "success",
+                }
+            ),
+            200,
+        )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -110,7 +130,7 @@ def remove_keywords():
         return render_template(
             "remove_keywords.html",
             keywords=get_all_keywords(),
-            destination_url="remove_keywords"
+            destination_url="remove_keywords",
         )
 
 
@@ -124,7 +144,7 @@ def remove_pending_keywords():
         return render_template(
             "remove_keywords.html",
             keywords=get_pending_words(),
-            destination_url="remove_pending_keywords"
+            destination_url="remove_pending_keywords",
         )
 
 
@@ -138,7 +158,7 @@ def remove_confirmed_keywords():
         return render_template(
             "remove_keywords.html",
             keywords=get_confirmed_words(),
-            destination_url="remove_confirmed_keywords"
+            destination_url="remove_confirmed_keywords",
         )
 
 
