@@ -1,21 +1,28 @@
 # coding: utf-8
 import json
+import logging
+import sys
+from argparse import ArgumentParser
 from datetime import datetime, timedelta
 from pathlib import Path
+
+import requests
+
 file_path = Path(__file__).resolve()
 parent_dir = file_path.parent.parent
-import sys
-print(str(parent_dir))
-sys.path.append(str(parent_dir))
 sys.path.insert(0, str(parent_dir))
 
+from config import ObjectStorage
 from minio import Minio
 from sqlalchemy import func
 
-from config import ObjectStorage
+import keyword_extraction
 from database import db_session
 from models import AMDRecord
-import keyword_extraction
+
+logger = logging.getLogger(__name__)
+headers = {"Content-Type": "application/json"}
+
 
 def get_calls_from_past_week(db_session):
     # Calculate date range
@@ -27,34 +34,56 @@ def get_calls_from_past_week(db_session):
         db_session.query(AMDRecord)
         .filter(AMDRecord.call_date >= one_week_ago)
         .filter(AMDRecord.call_date <= today)
-        #.filter(func.length(AMDRecord.dialed_number) > 6)
+        # .filter(func.length(AMDRecord.dialed_number) > 6)
         .all()
     )
 
     return past_week_calls
 
 
-calls = get_calls_from_past_week(db_session)
+def main(url):
+    calls = get_calls_from_past_week(db_session)
 
-client = Minio(
-    ObjectStorage.minio_url,
-    access_key=ObjectStorage.minio_access_key,
-    secret_key=ObjectStorage.minio_secret_key,
-    secure=False,
-)
-
-for call in calls:
-    call_id = call.call_id
-    # fetch metadata
-    metadata = client.get_object(
-        ObjectStorage.minio_metadata_bucket_name,
-        call_id + ".json",
+    client = Minio(
+        ObjectStorage.minio_url,
+        access_key=ObjectStorage.minio_access_key,
+        secret_key=ObjectStorage.minio_secret_key,
+        secure=False,
     )
-    metadata_ = json.loads(metadata.read())
-    transcript = metadata_["asr_result"]
-    if len(transcript) >= 5:
-        transcripts.append(transcript)
 
-keywords = keyword_extraction.extract(transcripts)
-print(keywords)
+    transcripts = []
+    for call in calls:
+        call_id = call.call_id
+        # fetch metadata
+        try:
+            metadata = client.get_object(
+                ObjectStorage.minio_metadata_bucket_name,
+                call_id + ".json",
+            )
+        except Exception as e:
+            logger.error(f"Error {e}")
+            continue
+        metadata_ = json.loads(metadata.read())
+        transcript = metadata_["asr_result"]
+        if len(transcript) >= 5:
+            transcripts.append(transcript)
 
+    keywords = keyword_extraction.extract(transcripts)
+
+    data = {f"keywords{i_}": key for i_, key in enumerate(keywords.keys())}
+    response = requests.post(url, headers=headers, data=json.dumps(data))
+    if response.status_code == 200:
+        response = response.json()
+        logger.info(response)
+    else:
+        logger.error(response.text)
+
+
+if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("--domain", type=str, default="127.0.0.1")
+    parser.add_argument("--port", type=str, default="8000")
+    args = parser.parse_args()
+    url = f"http://{args.domain}:{args.port}/api/add_pending_keywords"
+    main(url)
+    logger.info("Exit normal")
