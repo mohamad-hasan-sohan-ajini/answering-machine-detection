@@ -1,0 +1,12 @@
+[Unit]
+Description=Fetch Keywords from call records
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/bin/bash -c 'log_file="/root/answering-machine-detection/log/log-kw-$(date +%%Y-%%m-%%d--%%H:%%M:%%S).txt" && source /root/.bashrc && /root/venv/bin/python /root/answering-machine-detection/src/keyword_update/fetch_keywords.py --domain "127.0.0.1" --port "8000" > "$log_file" 2>&1'
+RestartSec=3
+Environment="PATH=/usr/local/bin:/usr/bin"
+StandardOutput=journal
+RemainAfterExit=false
+User=root

@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Fetch Keywords job at midnight daily
+
+[Timer]
+OnCalendar=*-*-* 00:00:00
+Persistent=true
+Unit=fetch_keyword_callrecords.service
+
+[Install]
+WantedBy=timers.target
+

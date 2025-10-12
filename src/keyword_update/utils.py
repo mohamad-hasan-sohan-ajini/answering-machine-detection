@@ -73,6 +73,8 @@ def sync_keywords_with_form(form):
 
 
 def add_keywords(form, status="confirmed"):
+    new_cnt = 0
+    red_cnt = 0
     status_code = CONFIRMED_STATUS if status == "confirmed" else PENDING_STATUS
     for word in form.values():
         if len(word) <= MIN_KEYWORD_LENGTH:
@@ -83,6 +85,7 @@ def add_keywords(form, status="confirmed"):
         )
         if existing_keyword is not None:
             print(f"Keyword '{word}' already exists, skipping.")
+            red_cnt += 1
             continue
         new_keyword = Keyword(
             word=word,
@@ -90,7 +93,9 @@ def add_keywords(form, status="confirmed"):
             status_id=status_code,
         )
         db_session.add(new_keyword)
+        new_cnt += 1
     db_session.commit()
+    return f"Added {new_cnt} , Skipped {red_cnt}"
 
 
 def remove_from_db(form):
