@@ -64,8 +64,8 @@ def main(url):
             logger.error(f"Error {e}")
             continue
         metadata_ = json.loads(metadata.read())
-        transcript = metadata_["asr_result"]
-        if len(transcript) >= 5:
+        transcript = metadata_.get("asr_result", "")
+        if metadata_['result'].upper() != 'AMD' and len(transcript) >= 5:
             transcripts.append(transcript)
 
     keywords = keyword_extraction.extract(transcripts)
