@@ -57,7 +57,6 @@ def cpr_from_title(transcripts: str):
             {"role":"user","content": transcripts}
         ]
     )
-    breakpoint()
     cpr = resp.output_text
     print(cpr)
 

@@ -68,6 +68,10 @@ def main(url):
         if metadata_['result'].upper() != 'AMD' and len(transcript) >= 5:
             transcripts.append(transcript)
 
+    if not transcripts:
+        logger.warning("No transcript found")
+        return -1
+
     keywords = keyword_extraction.extract(transcripts)
 
     data = {f"keywords{i_}": key for i_, key in enumerate(keywords.keys())}
