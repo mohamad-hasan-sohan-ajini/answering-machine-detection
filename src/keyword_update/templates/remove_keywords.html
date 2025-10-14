@@ -16,7 +16,7 @@
     </style>
 </head>
 <body>
-    <h1>Remove Keywords (check to remove)</h1>
+    <h1>Remove Keywords (check to remove) <a href="{{ url_for('show_routes') }}" style="font-size: 0.6em; margin-left: 10px; background: #4f46e5; color: white; padding: 4px 10px; border-radius: 6px; text-decoration: none;">Routes URLs</a></h1>
     <form method="post" action="{{ url_for(destination_url) }}">
         <ul class="keywords-grid">
             {% for word in keywords %}
