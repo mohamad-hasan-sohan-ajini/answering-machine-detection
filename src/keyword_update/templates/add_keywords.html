@@ -28,7 +28,7 @@
     </script>
 </head>
 <body>
-    <h1>{{ page_title }}</h1>
+    <h1>{{ page_title }} <a href="{{ url_for('show_routes') }}" style="font-size: 0.6em; margin-left: 10px; background: #4f46e5; color: white; padding: 4px 10px; border-radius: 6px; text-decoration: none;">Routes URLs</a></h1>
     <form method="post" action="{{ url_for(destination_url) }}">
         <div id="keywords-container">
             <div class="keyword-input-row">

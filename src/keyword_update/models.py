@@ -1,7 +1,8 @@
 from sqlalchemy import Column, Date, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
-
+from flask_login import UserMixin
 from database import Base
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 class Status(Base):
@@ -35,3 +36,33 @@ class Keyword(Base):
             "date": self.date.isoformat(),
             "status_id": self.status_id,
         }
+
+
+class User(Base, UserMixin):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_name = Column(String(100), unique=True, nullable=False)
+    password_hash = Column(String(255), nullable=False)
+
+        # -------- Password Utilities --------
+    def set_password(self, password):
+        """Hashes the plain-text password and stores it."""
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        """Verifies a given password against the stored hash."""
+        return check_password_hash(self.password_hash, password)
+
+    # -------- Optional Helper Methods --------
+    def __repr__(self):
+        return f"<User(user_name={self.user_name})>"
+
+    def as_dict(self):
+        return {
+            "id": self.id,
+            "user_name": self.user_name,
+            "password_hash": self.password_hash
+        }
+
+
