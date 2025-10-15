@@ -1,4 +1,3 @@
-import pandas as pd
 import yake
 from keybert import KeyBERT
 from sklearn.feature_extraction.text import TfidfVectorizer

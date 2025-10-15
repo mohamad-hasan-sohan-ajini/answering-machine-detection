@@ -1,8 +1,9 @@
+from flask_login import UserMixin
 from sqlalchemy import Column, Date, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
-from flask_login import UserMixin
+from werkzeug.security import check_password_hash, generate_password_hash
+
 from database import Base
-from werkzeug.security import generate_password_hash, check_password_hash
 
 
 class Status(Base):
@@ -39,13 +40,13 @@ class Keyword(Base):
 
 
 class User(Base, UserMixin):
-    __tablename__ = 'users'
+    __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_name = Column(String(100), unique=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
 
-        # -------- Password Utilities --------
+    # -------- Password Utilities --------
     def set_password(self, password):
         """Hashes the plain-text password and stores it."""
         self.password_hash = generate_password_hash(password)
@@ -62,7 +63,5 @@ class User(Base, UserMixin):
         return {
             "id": self.id,
             "user_name": self.user_name,
-            "password_hash": self.password_hash
+            "password_hash": self.password_hash,
         }
-
-

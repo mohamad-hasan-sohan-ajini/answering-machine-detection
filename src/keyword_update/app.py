@@ -1,35 +1,28 @@
 # app.py
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Optional
 
-
-from flask import Flask, jsonify, redirect, render_template, request, url_for, session
-from flask_login import (
-    LoginManager,
-    current_user,
-    login_required,
-    login_user,
-    logout_user,
+from flask import (
+    Flask,
+    flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
 )
-from flask_login import UserMixin
-from sqlalchemy import update, Column, String
-from sqlalchemy.ext.declarative import declarative_base
-
-from werkzeug.security import check_password_hash
-
-from datetime import timedelta
-
+from flask_login import LoginManager, login_required, login_user
 
 file_path = Path(__file__).resolve()
 parent_dir = file_path.parent
 sys.path.insert(0, str(parent_dir))
 
 
+from database import init_db
 from models import User
-from database import init_db, Base
 from utils import (
     add_keywords,
     get_all_keywords,
@@ -40,18 +33,14 @@ from utils import (
 )
 
 PORT = int(os.environ.get("PORT", 8000))
+timeout = int(os.environ.get("timeout", 5))
 app = Flask(__name__)
 app.secret_key = "9bee2f6c48c942a39461e688397e5346"
-app.config["REMEMBER_COOKIE_DURATION"] = timedelta(minutes=5)
-app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=5)
+app.config["REMEMBER_COOKIE_DURATION"] = timedelta(minutes=timeout)
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=timeout)
 init_db()
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
-
-
-# @app.context_processor
-# def inject_routes_link():
-#     return {'routes_link': url_for('/')}
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -66,13 +55,13 @@ def login():
             login_user(user)
             session.permanent = True
             next_page = request.args.get("next")
-            print(next_page)
             if not next_page:
-                next_page = url_for("index")
+                next_page = url_for("show_routes")
 
             return redirect(next_page)
         else:
-            return "Invalid username or password", 401
+            flash("Invalid username or password", "danger")
+            return redirect(url_for("login"))
 
     return render_template("login.html")
 
@@ -80,6 +69,7 @@ def login():
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
 
 @app.route("/health", methods=["GET"])
 def health():
@@ -209,10 +199,11 @@ def remove_confirmed_keywords():
 @app.route("/")
 @login_required
 def show_routes():
+    excluded_endpoints = ["show_routes", "login", "api_pending_keywords", "health"]
     routes = []
     for rule in app.url_map.iter_rules():
         # Skip static route
-        if rule.endpoint == "static":
+        if rule.endpoint == "static" or rule.endpoint in excluded_endpoints:
             continue
 
         # Build the URL for the route
@@ -222,78 +213,9 @@ def show_routes():
     # Sort alphabetically by endpoint
     routes.sort(key=lambda x: x[0])
 
-    html = """
-    <html>
-    <head>
-        <title>Available Routes</title>
-        <style>
-            body {
-                font-family: 'Poppins', sans-serif;
-                background: #f5f7fa;
-                padding: 2rem;
-            }
-            h1 {
-                color: #333;
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                background: white;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-                border-radius: 8px;
-                overflow: hidden;
-            }
-            th, td {
-                padding: 1rem;
-                text-align: left;
-                border-bottom: 1px solid #eee;
-            }
-            tr:hover {
-                background-color: #f1f5fb;
-            }
-            a {
-                color: #4f46e5;
-                text-decoration: none;
-            }
-            a:hover {
-                text-decoration: underline;
-            }
-            th {
-                background: #4f46e5;
-                color: white;
-            }
-        </style>
-    </head>
-    <body>
-        <h1>Available Flask Routes</h1>
-        <table>
-            <thead>
-                <tr>
-                    <th>Endpoint</th>
-                    <th>URL</th>
-                </tr>
-            </thead>
-            <tbody>
-    """
-
-    for endpoint, url, methods in routes:
-        html += f"""
-        <tr>
-            <td>{endpoint}</td>
-            <td><a href="{url}">{url}</a></td>
-        </tr>
-        """
-
-    html += """
-            </tbody>
-        </table>
-    </body>
-    </html>
-    """
-    return html
+    return render_template("routes.html", routes=routes)
 
 
 if __name__ == "__main__":
     # For local dev only. Behind a real server, use gunicorn/uwsgi.
     app.run(host="0.0.0.0", port=PORT, debug=True)
-

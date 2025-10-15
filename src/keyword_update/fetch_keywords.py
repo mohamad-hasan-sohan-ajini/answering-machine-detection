@@ -14,7 +14,6 @@ sys.path.insert(0, str(parent_dir))
 
 from config import ObjectStorage
 from minio import Minio
-from sqlalchemy import func
 
 import keyword_extraction
 from database import db_session
@@ -65,7 +64,7 @@ def main(url):
             continue
         metadata_ = json.loads(metadata.read())
         transcript = metadata_.get("asr_result", "")
-        if metadata_['result'].upper() != 'AMD' and len(transcript) >= 5:
+        if metadata_["result"].upper() != "AMD" and len(transcript) >= 5:
             transcripts.append(transcript)
 
     if not transcripts:
