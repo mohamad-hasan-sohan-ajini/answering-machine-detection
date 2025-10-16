@@ -78,6 +78,14 @@ keywords = [
     "TO SEVEN PM",
     "TO EIGHT PM",
     "TO NINE PM",
+    'VOICEMAIL',
+    'AUTOMATED',
+    'PROMPT',
+    'IVR',
+    'MAILBOX',
+    'RECORD',
+    'ANSWERING SERVICE',
+    'WELCOME MESSAGE'
 ]
 for word in keywords:
     k = Keyword(word=word, date=datetime.now().date(), status_id=1)
