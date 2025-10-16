@@ -14,7 +14,8 @@ from flask import (
     session,
     url_for,
 )
-from flask_login import LoginManager, login_required, login_user
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from flask_login import LoginManager, login_required, login_user, current_user
 
 file_path = Path(__file__).resolve()
 parent_dir = file_path.parent
@@ -34,10 +35,22 @@ from utils import (
 
 PORT = int(os.environ.get("PORT", 8000))
 timeout = int(os.environ.get("timeout", 5))
+tokentimeout = int(os.environ.get("timeout", 0))
+if not tokentimeout:
+    tokentimeout = False
+
 app = Flask(__name__)
 app.secret_key = "9bee2f6c48c942a39461e688397e5346"
 app.config["REMEMBER_COOKIE_DURATION"] = timedelta(minutes=timeout)
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=timeout)
+app.config["JWT_SECRET_KEY"] = "super-secret"
+app.config["JWT_TOKEN_LOCATION"] = ["headers"]
+app.config["JWT_HEADER_NAME"] = "Authorization"
+app.config["JWT_HEADER_TYPE"] = "Bearer"
+app.config["JWT_ALGORITHM"] = "HS256"
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=tokentimeout)
+
+jwt = JWTManager(app)
 init_db()
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
@@ -64,6 +77,15 @@ def login():
             return redirect(url_for("login"))
 
     return render_template("login.html")
+
+
+@app.route("/access_token", methods=["GET"])
+@login_required
+def access_token():
+    # Use Flask-Login's current_user object
+    username = current_user.user_name  # or current_user.username depending on your model
+    access_token = create_access_token(identity=username)
+    return jsonify(access_token=access_token), 200
 
 
 @login_manager.user_loader
@@ -125,6 +147,7 @@ def add_pending_keywords():
 
 
 @app.route("/api/add_pending_keywords", methods=["POST"])
+@jwt_required()
 def api_pending_keywords():
     data = request.get_json(silent=True)
     if not data or not isinstance(data, dict):
@@ -219,3 +242,4 @@ def show_routes():
 if __name__ == "__main__":
     # For local dev only. Behind a real server, use gunicorn/uwsgi.
     app.run(host="0.0.0.0", port=PORT, debug=True)
+

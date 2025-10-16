@@ -37,6 +37,11 @@ class Database:
 
 
 @dataclass
+class KeywordAPIAccess:
+    token: str = os.getenv("KEYWORD_ACCESS_TOKEN")
+
+
+@dataclass
 class ObjectStorage:
     minio_url: str = os.getenv("MINIO_URL")
     minio_access_key: str = os.getenv("MINIO_ACCESS_KEY")
