@@ -26,9 +26,16 @@
             });
         });
     </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-    <h1>{{ page_title }} <a href="{{ url_for('show_routes') }}" style="font-size: 0.6em; margin-left: 10px; background: #4f46e5; color: white; padding: 4px 10px; border-radius: 6px; text-decoration: none;">Routes URLs</a></h1>
+<h1 style="display: flex; align-items: center; gap: 10px; align-items: center;">
+	{% if "Pending" in page_title %}<i class="fa-solid fa-hourglass-half" style="color: #eab308; font-size: 1.4em;"></i>
+	{% elif "Confirmed" in page_title %}<i class="fa-solid fa-circle-check" style="color: #16a34a; font-size: 1.4em;"></i>
+	{% endif %}
+	{{ page_title }}<a href="{{ url_for('show_routes') }}" style="font-size: 0.6em; margin-left: 10px; background: #4f46e5; color: white; padding: 4px 10px; border-radius: 6px; text-decoration: none;">Routes URLs</a>
+</h1>
+
     <form method="post" action="{{ url_for(destination_url) }}">
         <div id="keywords-container">
             <div class="keyword-input-row">

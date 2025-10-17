@@ -11,9 +11,12 @@
     .word-item input[type="checkbox"] { margin-right: 0.5rem; }
     .submit-btn { margin-top: 1.5rem; padding: 0.6rem 1.2rem; }
   </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-  <h1>Keyword Manager <a href="{{ url_for('show_routes') }}" style="font-size: 0.6em; margin-left: 10px; background: #4f46e5; color: white; padding: 4px 10px; border-radius: 6px; text-decoration: none;">Routes URLs</a></h1>
+  <h1 style="display: flex; align-items: center; gap: 10px;">
+	<i class="fa-solid fa-pen-to-square" style="color: #2563eb; font-size: 1.4em;"></i>
+	Keyword Manager <a href="{{ url_for('show_routes') }}" style="font-size: 0.6em; margin-left: 10px; background: #4f46e5; color: white; padding: 4px 10px; border-radius: 6px; text-decoration: none;">Routes URLs</a></h1>
 
 <form method="post" action="{{ url_for('update_keywords') }}">
     <div style="display: flex; gap: 2rem;">
