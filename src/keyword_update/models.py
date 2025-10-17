@@ -23,7 +23,7 @@ class Keyword(Base):
     __tablename__ = "keywords"
 
     id = Column(Integer, primary_key=True)
-    word = Column(String(256), nullable=False)
+    word = Column(String(256), unique=True, nullable=False)
     date = Column(Date, nullable=False)
     status_id = Column(Integer, ForeignKey("status.id"), nullable=False)
 

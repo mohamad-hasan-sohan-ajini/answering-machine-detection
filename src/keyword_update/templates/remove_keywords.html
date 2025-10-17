@@ -1,34 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Remove Keywords</title>
-    <style>
-        .keywords-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 0.5rem 1.5rem;
-            list-style-type: none;
-            padding: 0;
-        }
-        .keyword-item { margin-bottom: 0.5rem; }
-        .submit-btn { margin-top: 1rem; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Remove Keywords</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; }
+    .keywords-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.5rem 1.5rem;
+      list-style-type: none;
+      padding: 0;
+    }
+    .keyword-item { margin-bottom: 0.5rem; }
+    .submit-btn { margin-top: 1rem; padding: 0.5rem 1rem; cursor: pointer; }
+    .select-all-box {
+      border: 2px solid #ddd;
+      background-color: #f9fafb;
+      padding: 0.8rem 1rem;
+      border-radius: 6px;
+      margin-bottom: 1.5rem;
+      font-weight: bold;
+      display: inline-block;
+    }
+    .divider {
+      border-bottom: 2px solid #e5e7eb;
+      margin-bottom: 1.5rem;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-    <h1>Remove Keywords (check to remove) <a href="{{ url_for('show_routes') }}" style="font-size: 0.6em; margin-left: 10px; background: #4f46e5; color: white; padding: 4px 10px; border-radius: 6px; text-decoration: none;">Routes URLs</a></h1>
-    <form method="post" action="{{ url_for(destination_url) }}">
-        <ul class="keywords-grid">
-            {% for word in keywords %}
-                <li class="keyword-item">
-                    <label>
-                        <input type="checkbox" name="keyword{{ loop.index0 }}" value="{{ word }}">
-                        {{ word }}
-                    </label>
-                </li>
-            {% endfor %}
-        </ul>
-        <button type="submit" class="submit-btn">Remove Selected</button>
-    </form>
+  <h1 style="display: flex; align-items: center; gap: 10px;">
+    <i class="fa-solid fa-circle-minus" style="color: #dc2626; font-size: 1.4em;"></i>
+    Remove Keywords (check to remove)
+    <a href="{{ url_for('show_routes') }}" 
+       style="font-size: 0.6em; margin-left: 10px; background: #4f46e5; color: white; padding: 4px 10px; border-radius: 6px; text-decoration: none;">
+       Routes URLs
+    </a>
+  </h1>
+
+  <form method="post" action="{{ url_for(destination_url) }}">
+    <!-- Select All Box -->
+    <div class="select-all-box">
+      <label>
+        <input type="checkbox" id="selectAll"> Select All
+      </label>
+    </div>
+
+    <div class="divider"></div>
+
+    <ul class="keywords-grid">
+      {% for word in keywords %}
+        <li class="keyword-item">
+          <label>
+            <input type="checkbox" name="keyword{{ loop.index0 }}" value="{{ word }}">
+            {{ word }}
+          </label>
+        </li>
+      {% endfor %}
+    </ul>
+
+    <button type="submit" class="submit-btn">Remove Selected</button>
+  </form>
+
+  <script>
+    // Select/Deselect all checkboxes
+    document.getElementById('selectAll').addEventListener('change', function() {
+      const checkboxes = document.querySelectorAll('input[type="checkbox"][name^="keyword"]');
+      checkboxes.forEach(cb => cb.checked = this.checked);
+    });
+  </script>
 </body>
 </html>
+

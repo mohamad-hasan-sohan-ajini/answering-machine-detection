@@ -29,8 +29,10 @@ from utils import (
     get_all_keywords,
     get_confirmed_words,
     get_pending_words,
+    get_deleted_words,
     remove_from_db,
     sync_keywords_with_form,
+    recycle_keywords_to_pending
 )
 
 PORT = int(os.environ.get("PORT", 8000))
@@ -115,6 +117,19 @@ def update_keywords():
             "update_keywords.html",
             confirmed_keywords=get_confirmed_words(),
             pending_keywords=get_pending_words(),
+        )
+
+
+@app.route("/recycle_keywords", methods=["GET", "POST"])
+@login_required
+def recycle_keywords():
+    if request.method == "POST":
+        recycle_keywords_to_pending(request.form)
+        return redirect(url_for("recycle_keywords"))
+    else:
+        return render_template(
+            "recycle_keywords.html",
+            removed_keywords=get_deleted_words(),
         )
 
 

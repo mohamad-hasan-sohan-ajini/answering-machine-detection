@@ -10,6 +10,7 @@ init_db()
 # STATUS
 CONFIRMED_STATUS = 1
 PENDING_STATUS = 2
+DELETED_STATUS = 3
 
 MIN_KEYWORD_LENGTH = 5
 
@@ -34,6 +35,18 @@ def get_pending_words():
         .all()
     ]
     return sorted(pending_keywords)
+
+
+def get_deleted_words():
+    deleted_keywords = [
+        k.word
+        for k in db_session.query(Keyword)
+        .join(Status)
+        .filter(Status.status == "deleted")
+        .all()
+    ]
+    return sorted(deleted_keywords)
+
 
 
 def get_all_keywords():
@@ -72,6 +85,26 @@ def sync_keywords_with_form(form):
     db_session.commit()
 
 
+def recycle_keywords_to_pending(form):
+    deleted_at_form = set([k for (k, v) in form.items()])
+    date = datetime.now().date()
+    for word in deleted_at_form:
+        word = word.strip().upper()
+        existing_keyword = (
+            db_session.query(Keyword).filter(Keyword.word == word).one_or_none()
+        )
+        # update
+        print("recovering", word)
+        db_session.execute(
+            update(Keyword)
+            .where(Keyword.word == word)
+            .values(status_id=PENDING_STATUS, date=date)
+        )
+
+    db_session.commit()
+
+
+
 def add_keywords(form, status="confirmed"):
     new_cnt = 0
     red_cnt = 0
@@ -99,6 +132,7 @@ def add_keywords(form, status="confirmed"):
 
 
 def remove_from_db(form):
+    date = datetime.now().date()
     for word in form.values():
         word = word.strip().upper()
         existing_keyword = (
@@ -107,5 +141,13 @@ def remove_from_db(form):
         if existing_keyword is None:
             print(f"Keyword '{word}' does not exist, skipping.")
             continue
-        db_session.delete(existing_keyword)
+        # update
+        print("deleting", word)
+        db_session.execute(
+            update(Keyword)
+            .where(Keyword.word == word)
+            .values(status_id=DELETED_STATUS, date=date)
+        )
+
     db_session.commit()
+
