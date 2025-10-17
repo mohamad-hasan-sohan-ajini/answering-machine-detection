@@ -12,6 +12,9 @@ db_session.commit()
 status_pending = Status(id=2, status="pending")
 db_session.add(status_pending)
 db_session.commit()
+status_pending = Status(id=3, status="deleted")
+db_session.add(status_pending)
+db_session.commit()
 
 # pupulate Keywords table
 keywords = [

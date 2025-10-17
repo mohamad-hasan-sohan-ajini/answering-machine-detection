@@ -5,6 +5,7 @@ import sys
 from argparse import ArgumentParser
 from datetime import datetime, timedelta
 from pathlib import Path
+import math
 
 import requests
 
@@ -64,7 +65,7 @@ def main(url):
             logger.error(f"Error {e}")
             continue
         metadata_ = json.loads(metadata.read())
-        transcript = metadata_.get("asr_result", "")
+        transcript = metadata_.get("asr_result", "").strip()
         if metadata_["result"].upper() != "AMD" and len(transcript) >= 5:
             transcripts.append(transcript)
 
@@ -72,15 +73,17 @@ def main(url):
         logger.warning("No transcript found")
         return -1
 
-    keywords = keyword_extraction.extract(transcripts)
+    keywords = keyword_extraction.extract(list(set(transcripts)))
+    keywords = list(set([key.strip().upper() for key in keywords.keys()]))
 
-    data = {f"keywords{i_}": key for i_, key in enumerate(keywords.keys())}
-    response = requests.post(url, headers=headers, data=json.dumps(data))
-    if response.status_code == 200:
-        response = response.json()
-        logger.warning(response)
-    else:
-        logger.error(response.text)
+    for p_ in range(math.ceil(len(keywords)/32)):
+        data = {f"keywords{i_}": key for i_, key in enumerate(keywords[p_*32:(p_+1)*32])}
+        response = requests.post(url, headers=headers, data=json.dumps(data))
+        if response.status_code == 200:
+            response = response.json()
+            logger.warning(response)
+        else:
+            logger.error(response.text)
 
 
 if __name__ == "__main__":
