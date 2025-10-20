@@ -14,8 +14,13 @@ from flask import (
     session,
     url_for,
 )
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
-from flask_login import LoginManager, login_required, login_user, current_user
+from flask_jwt_extended import (
+    JWTManager,
+    create_access_token,
+    get_jwt_identity,
+    jwt_required,
+)
+from flask_login import LoginManager, current_user, login_required, login_user
 
 file_path = Path(__file__).resolve()
 parent_dir = file_path.parent
@@ -28,11 +33,11 @@ from utils import (
     add_keywords,
     get_all_keywords,
     get_confirmed_words,
-    get_pending_words,
     get_deleted_words,
+    get_pending_words,
+    recycle_keywords_to_pending,
     remove_from_db,
     sync_keywords_with_form,
-    recycle_keywords_to_pending
 )
 
 PORT = int(os.environ.get("PORT", 8000))
@@ -85,7 +90,9 @@ def login():
 @login_required
 def access_token():
     # Use Flask-Login's current_user object
-    username = current_user.user_name  # or current_user.username depending on your model
+    username = (
+        current_user.user_name
+    )  # or current_user.username depending on your model
     access_token = create_access_token(identity=username)
     return jsonify(access_token=access_token), 200
 
@@ -110,7 +117,8 @@ def get_keywords():
 @login_required
 def update_keywords():
     if request.method == "POST":
-        sync_keywords_with_form(request.form)
+        updated_info = sync_keywords_with_form(request.form)
+        flash({"items": updated_info}, "updated")
         return redirect(url_for("update_keywords"))
     else:
         return render_template(
@@ -124,7 +132,8 @@ def update_keywords():
 @login_required
 def recycle_keywords():
     if request.method == "POST":
-        recycle_keywords_to_pending(request.form)
+        recycle_keys = recycle_keywords_to_pending(request.form)
+        flash({"items": recycle_keys}, "recycled")
         return redirect(url_for("recycle_keywords"))
     else:
         return render_template(
@@ -137,7 +146,8 @@ def recycle_keywords():
 @login_required
 def add_confirmed_keywords():
     if request.method == "POST":
-        add_keywords(request.form, "confirmed")
+        add_info = add_keywords(request.form, "confirmed")
+        flash(add_info, "added")
         return redirect(url_for("add_confirmed_keywords"))
     else:
         return render_template(
@@ -151,7 +161,8 @@ def add_confirmed_keywords():
 @login_required
 def add_pending_keywords():
     if request.method == "POST":
-        add_keywords(request.form, "pending")
+        add_info = add_keywords(request.form, "pending")
+        flash(add_info, "added")
         return redirect(url_for("add_pending_keywords"))
     else:
         return render_template(
@@ -196,7 +207,8 @@ def api_pending_keywords():
 @login_required
 def remove_keywords():
     if request.method == "POST":
-        remove_from_db(request.form)
+        removed_keys = remove_from_db(request.form)
+        flash({"items": removed_keys}, "removed")
         return redirect(url_for("remove_keywords"))
     else:
         return render_template(
@@ -210,7 +222,8 @@ def remove_keywords():
 @login_required
 def remove_pending_keywords():
     if request.method == "POST":
-        remove_from_db(request.form)
+        removed_keys = remove_from_db(request.form)
+        flash({"items": removed_keys}, "removed")
         return redirect(url_for("remove_pending_keywords"))
     else:
         return render_template(
@@ -224,7 +237,8 @@ def remove_pending_keywords():
 @login_required
 def remove_confirmed_keywords():
     if request.method == "POST":
-        remove_from_db(request.form)
+        removed_keys = remove_from_db(request.form)
+        flash({"items": removed_keys}, "removed")
         return redirect(url_for("remove_confirmed_keywords"))
     else:
         return render_template(
@@ -257,4 +271,3 @@ def show_routes():
 if __name__ == "__main__":
     # For local dev only. Behind a real server, use gunicorn/uwsgi.
     app.run(host="0.0.0.0", port=PORT, debug=True)
-
