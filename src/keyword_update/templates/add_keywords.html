@@ -5,12 +5,25 @@
     <title>{{ page_title }}</title>
 
     <style>
+        input[type="text"] {
+            width: 300px;      /* default is ~150–200px */
+            padding: 8px 10px; /* adds inner spacing */
+            font-size: 1rem;   /* increases text size slightly */
+            border-radius: 6px;
+            border: 2px solid #ccc;
+	    outline: none; /* ✅ prevent double border on focus */
+            transition: border-color 0.2s ease;
+          }
+	input[type="text"]:focus {
+		  border-color: #888; /* optional subtle focus color */
+	}
         .keyword-input-row { margin-bottom: 0.5rem; }
         .plus-btn { margin-left: 0.5rem; }
         .submit-btn { margin-top: 1rem; }
     </style>
     <script>
         let keywordCount = 1;
+
         function addKeywordInput() {
             const container = document.getElementById('keywords-container');
             const div = document.createElement('div');
@@ -18,14 +31,38 @@
             div.innerHTML = `<input type="text" name="keyword${keywordCount}" placeholder="Enter keyword">`;
             container.appendChild(div);
             keywordCount++;
+
+            // Add color check for new input
+            const input = div.querySelector('input');
+            input.addEventListener('input', handleInputColor);
         }
+
+        function handleInputColor(e) {
+            const input = e.target;
+            const len = input.value.length;
+
+            if (len === 0) {
+                input.style.border = '1px solid #ccc'; // default
+            } else if (len < 6) {
+                input.style.border = '2px solid red'
+            } else {
+                input.style.border = '2px solid green';
+            }
+        }
+
         window.addEventListener('DOMContentLoaded', function() {
+            // Apply to existing input
+            const firstInput = document.querySelector('input[name="keyword0"]');
+            firstInput.addEventListener('input', handleInputColor);
+
+            // Add button event
             document.getElementById('plus-btn').addEventListener('click', function(e) {
                 e.preventDefault();
                 addKeywordInput();
             });
         });
     </script>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
