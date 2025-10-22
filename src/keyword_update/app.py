@@ -100,12 +100,6 @@ def health():
     return jsonify({"status": "ok", "time": datetime.now().isoformat()})
 
 
-@app.route("/get_keywords", methods=["GET"])
-@login_required
-def get_keywords():
-    return jsonify(get_confirmed_words())
-
-
 @app.route("/update_keywords", methods=["GET", "POST"])
 @login_required
 def update_keywords():
@@ -159,6 +153,12 @@ def add_pending_keywords():
             destination_url="add_pending_keywords",
             page_title="Add Keywords (Pending)",
         )
+
+
+@app.route("/api/get_keywords", methods=["GET"])
+@jwt_required()
+def get_keywords():
+    return jsonify(get_confirmed_words())
 
 
 @app.route("/api/add_pending_keywords", methods=["POST"])

@@ -123,7 +123,7 @@ class KWSConfig:
     min_keyword_score: float = 1e-4
     max_gap: int = 25
     clip_char_prob: float = 0.01
-    am_keywords_url: str = "http://127.0.0.1:8000/get_keywords"
+    am_keywords_url: str = "http://127.0.0.1:8000/api/get_keywords"
     am_keywords: ClassVar[list[str]] = [
         "LEAVE YOUR NAME",
         "LEAVE A NAME",

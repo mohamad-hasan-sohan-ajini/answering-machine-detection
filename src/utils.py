@@ -33,12 +33,15 @@ from config import (
     ObjectStorage,
     UserAgent,
     gender_confidence_list,
+    KeywordAPIAccess
 )
 from database import db_session
 from models import AMDRecord
 from kws_decoder import KWSDecoder
 
 _logger = None
+
+headers = {"Content-Type": "application/json", "Authorization": f"Bearer {KeywordAPIAccess.token}"}
 
 
 def get_logger() -> logging.Logger:
@@ -335,7 +338,7 @@ def get_sad_audio_buffer_duration(sad, fs):
 
 def get_am_keywords():
     try:
-        am_keywords = requests.get(KWSConfig.am_keywords_url, timeout=0.1).json()
+        am_keywords = requests.get(KWSConfig.am_keywords_url, headers=headers, timeout=0.1).json()
     except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
         am_keywords = KWSConfig.am_keywords
     return am_keywords
