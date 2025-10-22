@@ -1,11 +1,11 @@
 # coding: utf-8
 import json
 import logging
+import math
 import sys
 from argparse import ArgumentParser
 from datetime import datetime, timedelta
 from pathlib import Path
-import math
 
 import requests
 
@@ -13,7 +13,7 @@ file_path = Path(__file__).resolve()
 parent_dir = file_path.parent.parent
 sys.path.insert(0, str(parent_dir))
 
-from config import ObjectStorage, KeywordAPIAccess
+from config import KeywordAPIAccess, ObjectStorage
 from minio import Minio
 
 import keyword_extraction
@@ -21,8 +21,10 @@ from database import db_session
 from models import AMDRecord
 
 logger = logging.getLogger(__name__)
-headers = {"Content-Type": "application/json",
-           "Authorization": f"Bearer {KeywordAPIAccess.token}"}
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"Bearer {KeywordAPIAccess.token}",
+}
 
 
 def get_calls_from_past_week(db_session):
@@ -76,8 +78,11 @@ def main(url):
     keywords = keyword_extraction.extract(list(set(transcripts)))
     keywords = list(set([key.strip().upper() for key in keywords.keys()]))
 
-    for p_ in range(math.ceil(len(keywords)/32)):
-        data = {f"keywords{i_}": key for i_, key in enumerate(keywords[p_*32:(p_+1)*32])}
+    for p_ in range(math.ceil(len(keywords) / 32)):
+        data = {
+            f"keywords{i_}": key
+            for i_, key in enumerate(keywords[p_ * 32 : (p_ + 1) * 32])
+        }
         response = requests.post(url, headers=headers, data=json.dumps(data))
         if response.status_code == 200:
             response = response.json()

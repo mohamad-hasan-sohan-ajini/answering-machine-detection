@@ -48,7 +48,6 @@ def get_deleted_words():
     return sorted(deleted_keywords)
 
 
-
 def get_all_keywords():
     return sorted(get_confirmed_words() + get_pending_words())
 
@@ -86,6 +85,7 @@ def sync_keywords_with_form(form):
 
 
 def recycle_keywords_to_pending(form):
+    recycled = []
     deleted_at_form = set([k for (k, v) in form.items()])
     date = datetime.now().date()
     for word in deleted_at_form:
@@ -100,9 +100,10 @@ def recycle_keywords_to_pending(form):
             .where(Keyword.word == word)
             .values(status_id=PENDING_STATUS, date=date)
         )
+        recycled.append(word)
 
     db_session.commit()
-
+    return recycled
 
 
 def add_keywords(form, status="confirmed"):
@@ -132,6 +133,7 @@ def add_keywords(form, status="confirmed"):
 
 
 def remove_from_db(form):
+    deleted = []
     date = datetime.now().date()
     for word in form.values():
         word = word.strip().upper()
@@ -148,6 +150,7 @@ def remove_from_db(form):
             .where(Keyword.word == word)
             .values(status_id=DELETED_STATUS, date=date)
         )
+        deleted.append(word)
 
     db_session.commit()
-
+    return deleted
