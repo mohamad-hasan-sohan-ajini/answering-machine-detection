@@ -81,7 +81,7 @@ def call_amd_agent(
                 break
     call_id = call.getInfo().callIdString
     # sleep time must be bigger than network delay
-    time.sleep(0.5)
+    time.sleep(1)
     if call_established:
         # audio recorder
         wav_writer = pj.AudioMediaRecorder()
