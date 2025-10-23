@@ -8,7 +8,8 @@ from typing import ClassVar
 
 from dotenv import load_dotenv
 
-if not load_dotenv():   # defaults to ".env" search up the tree
+# defaults to ".env" search up the tree
+if not load_dotenv():
     raise FileNotFoundError("No .env file found.")
 
 is_production = False if os.getenv("UA_ENV") == "pc" else True
