@@ -12,8 +12,11 @@ db_session.commit()
 status_pending = Status(id=2, status="pending")
 db_session.add(status_pending)
 db_session.commit()
-status_pending = Status(id=3, status="deleted")
-db_session.add(status_pending)
+status_deleted = Status(id=3, status="deleted")
+db_session.add(status_deleted)
+db_session.commit()
+status_expired = Status(id=4, status="expired")
+db_session.add(status_expired)
 db_session.commit()
 
 # pupulate Keywords table

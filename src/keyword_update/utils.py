@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy import update
 
@@ -11,6 +11,7 @@ init_db()
 CONFIRMED_STATUS = 1
 PENDING_STATUS = 2
 DELETED_STATUS = 3
+EXPIRED_STATUS = 4
 
 MIN_KEYWORD_LENGTH = 5
 
@@ -39,12 +40,25 @@ def get_pending_words():
 
 def get_deleted_words():
     deleted_keywords = [
-        k.word
+        (k.word, k.date)
         for k in db_session.query(Keyword)
         .join(Status)
         .filter(Status.status == "deleted")
         .all()
     ]
+    date = datetime.now().date()
+    date_threshold = date - timedelta(days=30)
+
+    for word, d in deleted_keywords:
+        if d < date_threshold:
+            db_session.execute(
+                update(Keyword)
+                .where(Keyword.word == word)
+                .values(status_id=EXPIRED_STATUS, date=date)
+            )
+
+    db_session.commit()
+    deleted_keywords = [word for word, d in deleted_keywords if d >= date_threshold]
     return sorted(deleted_keywords)
 
 
@@ -109,6 +123,8 @@ def recycle_keywords_to_pending(form):
 def add_keywords(form, status="confirmed"):
     new_cnt = 0
     red_cnt = 0
+    rec_cnt = 0
+    date = datetime.now().date()
     status_code = CONFIRMED_STATUS if status == "confirmed" else PENDING_STATUS
     for word in form.values():
         if len(word) <= MIN_KEYWORD_LENGTH:
@@ -118,8 +134,17 @@ def add_keywords(form, status="confirmed"):
             db_session.query(Keyword).filter(Keyword.word == word).one_or_none()
         )
         if existing_keyword is not None:
-            print(f"Keyword '{word}' already exists, skipping.")
-            red_cnt += 1
+            if existing_keyword.status_id == EXPIRED_STATUS:
+                db_session.execute(
+                    update(Keyword)
+                    .where(Keyword.word == word)
+                    .values(status_id=DELETED_STATUS, date=date)
+                )
+                print(f"Keyword '{word}' to Recycle Bin.")
+                rec_cnt += 1
+            else:
+                print(f"Keyword '{word}' already exists, skipping.")
+                red_cnt += 1
             continue
         new_keyword = Keyword(
             word=word,
@@ -129,7 +154,7 @@ def add_keywords(form, status="confirmed"):
         db_session.add(new_keyword)
         new_cnt += 1
     db_session.commit()
-    return f"Added {new_cnt} , Skipped {red_cnt}"
+    return f"Added {new_cnt} , Skipped {red_cnt}, Recycled {rec_cnt}"
 
 
 def remove_from_db(form):
