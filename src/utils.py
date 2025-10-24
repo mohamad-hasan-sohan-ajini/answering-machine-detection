@@ -338,7 +338,7 @@ def get_sad_audio_buffer_duration(sad, fs):
 
 def get_am_keywords():
     try:
-        am_keywords = requests.get(KWSConfig.am_keywords_url, headers=headers, timeout=0.1).json()
+        am_keywords = requests.get(KWSConfig.am_keywords_url, headers=headers, timeout=0.1, verify=False).json()
     except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
         am_keywords = KWSConfig.am_keywords
     return am_keywords

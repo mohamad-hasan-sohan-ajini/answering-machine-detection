@@ -83,7 +83,9 @@ def main(url):
             f"keywords{i_}": key
             for i_, key in enumerate(keywords[p_ * 32 : (p_ + 1) * 32])
         }
-        response = requests.post(url, headers=headers, data=json.dumps(data))
+        response = requests.post(
+            url, headers=headers, data=json.dumps(data), verify=False
+        )
         if response.status_code == 200:
             response = response.json()
             logger.warning(response)
@@ -96,6 +98,9 @@ if __name__ == "__main__":
     parser.add_argument("--domain", type=str, default="127.0.0.1")
     parser.add_argument("--port", type=str, default="8000")
     args = parser.parse_args()
-    url = f"http://{args.domain}:{args.port}/api/add_pending_keywords"
+    if args.port == "443":
+        url = f"https://{args.domain}:{args.port}/api/add_pending_keywords"
+    else:
+        url = f"http://{args.domain}:{args.port}/api/add_pending_keywords"
     main(url)
     logger.warning("Exit normal")

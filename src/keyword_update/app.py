@@ -6,8 +6,7 @@ from pathlib import Path
 
 from flask import (Flask, flash, jsonify, redirect, render_template, request,
                    session, url_for)
-from flask_jwt_extended import (JWTManager, create_access_token,
-                                get_jwt_identity, jwt_required)
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 from flask_login import LoginManager, current_user, login_required, login_user
 
 file_path = Path(__file__).resolve()
@@ -23,6 +22,11 @@ from utils import (add_keywords, get_all_keywords, get_confirmed_words,
                    sync_keywords_with_form)
 
 PORT = int(os.environ.get("PORT", 8000))
+FULLCHAIN = os.environ.get(
+    "FULLCHAIN", "/etc/letsencrypt/live/badenbpo.info/fullchain.pem"
+)
+PRIVKEY = os.environ.get("PRIVKEY", "/etc/letsencrypt/live/badenbpo.info/privkey.pem")
+
 timeout = int(os.environ.get("timeout", 5))
 tokentimeout = int(os.environ.get("timeout", 0))
 if not tokentimeout:
@@ -150,7 +154,7 @@ def add_pending_keywords():
 
 @app.route("/api/get_keywords", methods=["GET"])
 @jwt_required()
-def get_keywords():
+def api_get_keywords():
     return jsonify(get_confirmed_words())
 
 
@@ -233,7 +237,13 @@ def remove_confirmed_keywords():
 @app.route("/")
 @login_required
 def show_routes():
-    excluded_endpoints = ["show_routes", "login", "api_pending_keywords", "health"]
+    excluded_endpoints = [
+        "show_routes",
+        "login",
+        "api_get_keywords",
+        "api_pending_keywords",
+        "health",
+    ]
     routes = []
     for rule in app.url_map.iter_rules():
         # Skip static route
@@ -252,4 +262,9 @@ def show_routes():
 
 if __name__ == "__main__":
     # For local dev only. Behind a real server, use gunicorn/uwsgi.
-    app.run(host="0.0.0.0", port=PORT, debug=True)
+    if PORT == 443:
+        app.run(
+            host="0.0.0.0", port=PORT, ssl_context=(FULLCHAIN, PRIVKEY), debug=False
+        )
+    else:
+        app.run(host="0.0.0.0", port=PORT, debug=False)
