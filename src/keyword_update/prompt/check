@@ -1,0 +1,4 @@
+I’m building a keyword detector to separate answering machines from live callers.
+Given a comma-separated keyword list, keep only unambiguous keywords that indicate an answering machine.
+Discard any terms commonly used by live callers at the start of a call or named entities since they are not general.
+Return only the kept keywords as a comma separated string as fed in the input without additional description.

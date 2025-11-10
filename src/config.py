@@ -6,14 +6,16 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import ClassVar
 
+file_path = Path(__file__).parent
+env_path = file_path / ".env"
+
 from dotenv import load_dotenv
 
 # defaults to ".env" search up the tree
-if not load_dotenv():
+if not load_dotenv(dotenv_path=env_path):
     raise FileNotFoundError("No .env file found.")
 
 is_production = False if os.getenv("UA_ENV") == "pc" else True
-file_path = Path(__file__).parent
 
 
 @dataclass
@@ -81,6 +83,12 @@ class Algorithm:
 @dataclass
 class CallbackAPIs:
     address: str = os.getenv("CALLBACK_API_ADDRESS")
+
+
+@dataclass
+class OpenAIAPI:
+    model: str = os.getenv("GPT_MODEL")
+    apikey: str = os.getenv("OpenAI_API_KEY")
 
 
 @dataclass
