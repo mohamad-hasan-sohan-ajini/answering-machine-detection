@@ -20,6 +20,7 @@ import requests
 import soundfile as sf
 import torch
 import torchaudio
+from kws_decoder import KWSDecoder
 from minio import Minio
 from redis import Redis
 from sqlalchemy import text
@@ -29,19 +30,21 @@ from config import (
     Algorithm,
     CallbackAPIs,
     Database,
+    KeywordAPIAccess,
     KWSConfig,
     ObjectStorage,
     UserAgent,
     gender_confidence_list,
-    KeywordAPIAccess
 )
 from database import db_session
 from models import AMDRecord
-from kws_decoder import KWSDecoder
 
 _logger = None
 
-headers = {"Content-Type": "application/json", "Authorization": f"Bearer {KeywordAPIAccess.token}"}
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"Bearer {KeywordAPIAccess.token}",
+}
 
 
 def get_logger() -> logging.Logger:
@@ -68,7 +71,7 @@ def get_number(remote_uri):
 def parse_new_frames(appended_bytes, info):
     data = np.frombuffer(appended_bytes, dtype=np.int16)
     data = data[:: info.channels]
-    data = data / (2**15)
+    data = data / (2 ** 15)
     return data.astype(np.float32)
 
 
@@ -338,7 +341,9 @@ def get_sad_audio_buffer_duration(sad, fs):
 
 def get_am_keywords():
     try:
-        am_keywords = requests.get(KWSConfig.am_keywords_url, headers=headers, timeout=0.1, verify=False).json()
+        am_keywords = requests.get(
+            KWSConfig.am_keywords_url, headers=headers, timeout=0.1, verify=False
+        ).json()
     except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
         am_keywords = KWSConfig.am_keywords
     return am_keywords

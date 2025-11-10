@@ -12,7 +12,6 @@ from config import Algorithm, ObjectStorage
 from database import db_session
 from models import AMDRecord
 
-
 ################
 # select data #
 ################

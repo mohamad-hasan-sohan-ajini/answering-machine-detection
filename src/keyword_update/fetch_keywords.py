@@ -13,10 +13,10 @@ file_path = Path(__file__).resolve()
 parent_dir = file_path.parent.parent
 sys.path.insert(0, str(parent_dir))
 
-from config import KeywordAPIAccess, ObjectStorage
+import keyword_extraction
 from minio import Minio
 
-import keyword_extraction
+from config import KeywordAPIAccess, ObjectStorage
 from database import db_session
 from models import AMDRecord
 
