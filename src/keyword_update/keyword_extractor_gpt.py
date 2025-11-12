@@ -106,7 +106,7 @@ if __name__ == "__main__":
 
     uvicorn.run(
         "keyword_extractor_gpt:app",  # module:app instance
-        host="0.0.0.0",  # or "0.0.0.0" for external access
+        host="127.0.0.1",  # or "0.0.0.0" for external access
         port=8000,
         reload=True,  # auto-reload on code changes
     )

@@ -13,7 +13,7 @@ file_path = Path(__file__).resolve()
 parent_dir = file_path.parent.parent
 sys.path.insert(0, str(parent_dir))
 
-import keyword_extraction
+import llm_keyword_extraction
 from minio import Minio
 
 from config import KeywordAPIAccess, ObjectStorage
@@ -68,21 +68,23 @@ def main(url):
             continue
         metadata_ = json.loads(metadata.read())
         transcript = metadata_.get("asr_result", "").strip()
-        if metadata_["result"].upper() != "AMD" and len(transcript) >= 5:
+        if len(transcript) >= 5:
             transcripts.append(transcript)
 
     if not transcripts:
         logger.warning("No transcript found")
         return -1
 
-    keywords = keyword_extraction.extract(list(set(transcripts)))
-    keywords = list(set([key.strip().upper() for key in keywords.keys()]))
+    keywords = llm_keyword_extraction.extract(transcripts)
 
     for p_ in range(math.ceil(len(keywords) / 32)):
         data = {
             f"keywords{i_}": key
             for i_, key in enumerate(keywords[p_ * 32 : (p_ + 1) * 32])
+            if len(key) > 5
         }
+        if len(data) == 0:
+            continue
         response = requests.post(
             url, headers=headers, data=json.dumps(data), verify=False
         )

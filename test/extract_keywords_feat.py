@@ -1,6 +1,6 @@
 # feature based keyword extractore
-from keybert import KeyBERT
 import yake
+from keybert import KeyBERT
 
 segments = open("/home/navid/am").read().strip()
 
@@ -13,7 +13,9 @@ for kw, score in keywords:
     print(f"{kw} (score: {score:.4f})")
 
 kw_model = KeyBERT()
-keywords = kw_model.extract_keywords(segments, keyphrase_ngram_range=(1, 2), stop_words='english', top_n=20)
+keywords = kw_model.extract_keywords(
+    segments, keyphrase_ngram_range=(1, 2), stop_words="english", top_n=20
+)
 
 print("\nKeyBert")
 for kw, score in keywords:
@@ -32,11 +34,9 @@ for kw, score in keywords:
 
 print("\nKeyBert")
 kw_model = KeyBERT()
-keywords = kw_model.extract_keywords(segments, keyphrase_ngram_range=(1, 2), stop_words='english', top_n=20)
+keywords = kw_model.extract_keywords(
+    segments, keyphrase_ngram_range=(1, 2), stop_words="english", top_n=20
+)
 
 for kw, score in keywords:
     print(f"{kw} (score: {score:.4f})")
-
-
-
-
