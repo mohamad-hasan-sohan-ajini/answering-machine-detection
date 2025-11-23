@@ -160,7 +160,7 @@ keywords = [
     "VOICEMAIL MESSAGES",
     "CALL MACHINE",
     "BEEP PLEASE",
-    "REACHED VOICEMAIL"
+    "REACHED VOICEMAIL",
 ]
 for word in keywords:
     k = Keyword(word=word, date=datetime.now().date(), status_id=1)

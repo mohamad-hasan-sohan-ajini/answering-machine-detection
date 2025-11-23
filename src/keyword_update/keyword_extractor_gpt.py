@@ -41,8 +41,8 @@ PROMPT_CHECK = pkgutil.get_data("prompt", "CHECK_GPT").decode("utf-8").strip()
 def analyze_transcripts(transcripts: list[str]) -> dict[int, list[str]]:
     keywords_result = {}
 
-    for batch_index in range(0, len(transcripts), 20)):
-        segment = transcripts[batch_index: batch_index+20]
+    for batch_index in range(0, len(transcripts), 20):
+        segment = transcripts[batch_index : batch_index + 20]
         try:
             resp = client.responses.create(
                 model=OpenAIAPI.model,
@@ -65,7 +65,7 @@ def analyze_keywords(transcripts: list[str]) -> str:
     keywords_result = []
 
     for batch_index in range(0, len(transcripts), 20):
-        segment = transcripts[batch_index: batch_index+20]
+        segment = transcripts[batch_index : batch_index + 20]
         try:
             resp = client.responses.create(
                 model=OpenAIAPI.model,

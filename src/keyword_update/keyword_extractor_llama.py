@@ -1,19 +1,19 @@
-import json, re, math
+import json
+import math
 import pkgutil
-from tqdm import tqdm
-from time import time
-from collections import Counter
-from transformers import AutoTokenizer, AutoModelForCausalLM
-from transformers import pipeline
-from nltk.corpus import stopwords
 import re
+import sys
+from collections import Counter
+from pathlib import Path
+from time import time
+
 import nltk
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from nltk.corpus import stopwords
 from pydantic import BaseModel
-
-from pathlib import Path
-import sys
+from tqdm import tqdm
+from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
 file_path = Path(__file__).resolve()
 parent_dir = file_path.parent.parent
@@ -21,18 +21,19 @@ sys.path.insert(0, str(parent_dir))
 
 from config import LLMAIAPI
 
-
 times_tries_extract = LLMAIAPI.times_tries_extract
 times_tries_checking = LLMAIAPI.times_tries_checking
 times_double_check = LLMAIAPI.times_double_check
 ignore_function_words = LLMAIAPI.ignore_function_words
 
-nltk.download('stopwords')
+nltk.download("stopwords")
 ner = pipeline("ner", grouped_entities=True, device=-1)
-stop_words = set(stopwords.words('english'))
+stop_words = set(stopwords.words("english"))
 
 tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-8B-Instruct")
-model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.1-8B-Instruct", device_map="auto", torch_dtype="auto")
+model = AutoModelForCausalLM.from_pretrained(
+    "meta-llama/Llama-3.1-8B-Instruct", device_map="auto", torch_dtype="auto"
+)
 
 PROMPT_EXTRACT = pkgutil.get_data("prompt", "EXTRACT_LLAMA").decode("utf-8").strip()
 PROMPT_CHCECK1 = pkgutil.get_data("prompt", "CHECK_LLAMA1").decode("utf-8").strip()
@@ -52,22 +53,29 @@ app = FastAPI(
 class TranscriptInput(BaseModel):
     transcripts: list[str]
 
+
 def __fetch_keywords__(trans):
     messages = [
         {
             "role": "system",
-            "content": (
-               PROMPT_EXTRACT 
-            ),
+            "content": (PROMPT_EXTRACT),
         },
         {
             "role": "user",
             "content": f"The transcript is:\n{trans}",
         },
     ]
-    inputs = tokenizer.apply_chat_template(messages, add_generation_prompt=True, tokenize=True, return_dict=True, return_tensors="pt").to(model.device)
-    outputs = model.generate(**inputs, max_new_tokens=50, pad_token_id=tokenizer.eos_token_id)
-    result = tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:])
+    inputs = tokenizer.apply_chat_template(
+        messages,
+        add_generation_prompt=True,
+        tokenize=True,
+        return_dict=True,
+        return_tensors="pt",
+    ).to(model.device)
+    outputs = model.generate(
+        **inputs, max_new_tokens=50, pad_token_id=tokenizer.eos_token_id
+    )
+    result = tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1] :])
     keywords = []
     try:
         cleaned = re.sub(r"<\|.*?\|>", "", result).strip()
@@ -81,7 +89,7 @@ def __fetch_keywords__(trans):
                 try:
                     response = json.loads(cleaned + '"]}')
                 except:
-                    response = json.loads(cleaned[:-1] + ']}')
+                    response = json.loads(cleaned[:-1] + "]}")
         keyword = response.get("keywords", "")
         if keyword:
             keywords.extend(keyword)
@@ -90,11 +98,20 @@ def __fetch_keywords__(trans):
         # breakpoint() # For debug
 
     return keywords
-        
+
+
 def __check_keywords__(keyword):
-    inputs = tokenizer.apply_chat_template(keyword, add_generation_prompt=True, tokenize=True, return_dict=True, return_tensors="pt").to(model.device)
-    outputs = model.generate(**inputs, max_new_tokens=40, pad_token_id=tokenizer.eos_token_id)
-    result = tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:])
+    inputs = tokenizer.apply_chat_template(
+        keyword,
+        add_generation_prompt=True,
+        tokenize=True,
+        return_dict=True,
+        return_tensors="pt",
+    ).to(model.device)
+    outputs = model.generate(
+        **inputs, max_new_tokens=40, pad_token_id=tokenizer.eos_token_id
+    )
+    result = tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1] :])
     try:
         cleaned = re.sub(r"<\|.*?\|>", "", result).strip()
         response = re.sub(r"^```[a-zA-Z0-9]*\n|```$", "", cleaned.strip())
@@ -103,13 +120,15 @@ def __check_keywords__(keyword):
             return status
     except:
         pass
-        #breakpoint()
+        # breakpoint()
 
     return None
+
 
 def __detect_function_words__(sentence):
     words = sentence.split()
     return [w for w in words if w.lower() in stop_words]
+
 
 def extract_kw_transcripts(transcripts):
     for t in tqdm(range(times_tries_extract), desc="Extracting keywrods"):
@@ -122,6 +141,7 @@ def extract_kw_transcripts(transcripts):
 
     keywords = list(set(keywords))
     return keywords
+
 
 def check_kw_extracted(keywords):
     keywords_extracted = []
@@ -143,12 +163,16 @@ def check_kw_extracted(keywords):
 
                     keyword_status = __check_keywords__(messages)
                     if keyword_status:
-                        keywords_decision.update({keyword:keyword_status})
-        
-            keywords_extracted.extend([key for key, val in keywords_decision.items() if val])
+                        keywords_decision.update({keyword: keyword_status})
+
+            keywords_extracted.extend(
+                [key for key, val in keywords_decision.items() if val]
+            )
 
     cnt = Counter(keywords_extracted)
-    keywords_extracted = {k for k, v in cnt.items() if v > math.ceil(times_tries_checking/2)}
+    keywords_extracted = {
+        k for k, v in cnt.items() if v > math.ceil(times_tries_checking / 2)
+    }
 
     cleaned_keywords = []
     for key in keywords_extracted:
@@ -163,6 +187,7 @@ def check_kw_extracted(keywords):
     cleaned_keywords = list(set(cleaned_keywords))
     return cleaned_keywords
 
+
 def double_check_kw(keywords):
     filtered_keywords = []
     for key in keywords:
@@ -172,11 +197,10 @@ def double_check_kw(keywords):
         else:
             filtered_keywords.append(key.lower())
 
-
     print(f"**** Filtered Keywords are {len(filtered_keywords)}")
     for fnum in range(times_double_check):
         keywords_decision = {}
-        for keyword in tqdm(filtered_keywords,  desc=f"Iteration {fnum+1}"):
+        for keyword in tqdm(filtered_keywords, desc=f"Iteration {fnum+1}"):
             keyword = keyword.strip()
             if len(keyword) > 5:
                 messages = [
@@ -189,15 +213,14 @@ def double_check_kw(keywords):
                         "content": f"{keyword}",
                     },
                 ]
-        
+
                 keyword_status = __check_keywords__(messages)
                 if keyword_status:
                     keywords_decision.update({keyword: keyword_status})
-            
-        filtered_keywords = [key for key, val in keywords_decision.items() if val]
-    
-    return filtered_keywords
 
+        filtered_keywords = [key for key, val in keywords_decision.items() if val]
+
+    return filtered_keywords
 
 
 @app.post("/extract_keywords", response_class=JSONResponse)
@@ -207,6 +230,7 @@ def extract_keywords(data: TranscriptInput):
     keywrods_final = double_check_kw(keywrods_checked)
     keywrods_final = [key.upper() for key in keywrods_final]
     return keywrods_final
+
 
 @app.post("/check_keywords", response_class=JSONResponse)
 def check_keywords(data: TranscriptInput):
@@ -225,4 +249,3 @@ if __name__ == "__main__":
         timeout_keep_alive=300,
         reload=False,  # auto-reload on code changes
     )
-

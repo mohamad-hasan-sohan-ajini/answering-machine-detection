@@ -12,10 +12,10 @@ file_path = Path(__file__).resolve()
 parent_dir = file_path.parent.parent
 sys.path.insert(0, str(parent_dir))
 
-import llm_keyword_extraction
+from config import KeywordAPIAccess, ObjectStorage
 from minio import Minio
 
-from config import KeywordAPIAccess, ObjectStorage
+import llm_keyword_extraction
 from database import db_session
 from models import AMDRecord
 
@@ -79,7 +79,7 @@ def main(url):
     for p in range(0, len(keywords), 32):
         data = {
             f"keywords{i}": key
-            for i, key in enumerate(keywords[p:p+32])
+            for i, key in enumerate(keywords[p : p + 32])
             if len(key) > 5
         }
         if not data:
