@@ -1,7 +1,6 @@
 # coding: utf-8
 import json
 import logging
-import math
 import sys
 from argparse import ArgumentParser
 from datetime import datetime, timedelta
@@ -77,20 +76,20 @@ def main(url):
 
     keywords = llm_keyword_extraction.extract(transcripts)
 
-    for p_ in range(math.ceil(len(keywords) / 32)):
+    for p in range(0, len(keywords), 32):
         data = {
-            f"keywords{i_}": key
-            for i_, key in enumerate(keywords[p_ * 32 : (p_ + 1) * 32])
+            f"keywords{i}": key
+            for i, key in enumerate(keywords[p:p+32])
             if len(key) > 5
         }
-        if len(data) == 0:
+        if not data:
             continue
         response = requests.post(
             url, headers=headers, data=json.dumps(data), verify=False
         )
         if response.status_code == 200:
             response = response.json()
-            logger.warning(response)
+            logger.info(response)
         else:
             logger.error(response.text)
 

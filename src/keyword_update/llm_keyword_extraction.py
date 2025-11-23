@@ -14,7 +14,7 @@ def extract(transcripts: list[str]) -> list[str]:
 
     keywords_unchecked = []
     for keys in data_decision.values():
-        if keys is not None and len(keys) > 0:
+        if keys:
             keys = [key for key in keys if key is not None and len(key) > 5]
             keywords_unchecked.extend(keys)
 

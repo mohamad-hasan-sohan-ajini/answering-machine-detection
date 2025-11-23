@@ -1,5 +1,4 @@
 import json
-import math
 import os
 import pkgutil
 import sys
@@ -35,15 +34,15 @@ class TranscriptInput(BaseModel):
 # class KeywordResponse(BaseModel):
 #     keywords: dict[int, list[str]]
 
-PROMPT_EXTRACT = pkgutil.get_data("prompt", "extract").decode("utf-8").strip()
-PROMPT_CHECK = pkgutil.get_data("prompt", "check").decode("utf-8").strip()
+PROMPT_EXTRACT = pkgutil.get_data("prompt", "EXTRACT_GPT").decode("utf-8").strip()
+PROMPT_CHECK = pkgutil.get_data("prompt", "CHECK_GPT").decode("utf-8").strip()
 
 
 def analyze_transcripts(transcripts: list[str]) -> dict[int, list[str]]:
     keywords_result = {}
 
-    for batch_index in range(math.ceil(len(transcripts) / 20)):
-        segment = transcripts[batch_index * 20 : (batch_index + 1) * 20]
+    for batch_index in range(0, len(transcripts), 20)):
+        segment = transcripts[batch_index: batch_index+20]
         try:
             resp = client.responses.create(
                 model=OpenAIAPI.model,
@@ -65,8 +64,8 @@ def analyze_transcripts(transcripts: list[str]) -> dict[int, list[str]]:
 def analyze_keywords(transcripts: list[str]) -> str:
     keywords_result = []
 
-    for batch_index in range(math.ceil(len(transcripts) / 20)):
-        segment = transcripts[batch_index * 20 : (batch_index + 1) * 20]
+    for batch_index in range(0, len(transcripts), 20):
+        segment = transcripts[batch_index: batch_index+20]
         try:
             resp = client.responses.create(
                 model=OpenAIAPI.model,
