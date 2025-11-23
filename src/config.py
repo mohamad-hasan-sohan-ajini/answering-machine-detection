@@ -92,6 +92,14 @@ class OpenAIAPI:
 
 
 @dataclass
+class LLMAIAPI:
+    times_tries_extract: int = int(os.getenv("TIMES_TRIES_EXTRACT"))
+    times_tries_checking: int = int(os.getenv("TIMES_TRIES_CHECKING"))
+    times_double_check: int = int(os.getenv("TIMES_DOUBLE_CHECK"))
+    ignore_function_words: bool = os.getenv("IGNORE_FUNCTION_WORDS")
+
+
+@dataclass
 class KWSConfig:
     alphabet: ClassVar[list[str]] = [
         "-",
