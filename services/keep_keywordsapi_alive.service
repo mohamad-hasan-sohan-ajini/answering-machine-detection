@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 TimeoutStartSec=0
 WorkingDirectory=/root/answering-machine-detection
-ExecStart=/bin/bash -c 'log_file="/root/answering-machine-detection/log/api-$(date +%%Y-%%m-%%d-%%H).txt" && source /root/.bashrc && /root/venv/bin/python /root/answering-machine-detection/src/keyword_update/app.py > "$log_file" 2>&1'
+ExecStart=/bin/bash -c 'log_file="/root/answering-machine-detection/src/keyword_update/log/api-$(date +%%Y-%%m-%%d-%%H).txt" && source /root/.bashrc && /root/venv/bin/python /root/answering-machine-detection/src/keyword_update/app.py > "$log_file" 2>&1'
 Restart=always
 RestartSec=3
 Environment="PATH=/usr/local/bin:/usr/bin"
