@@ -4,8 +4,16 @@ import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from flask import (Flask, flash, jsonify, redirect, render_template, request,
-                   session, url_for)
+from flask import (
+    Flask,
+    flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 from flask_login import LoginManager, current_user, login_required, login_user
 
@@ -16,10 +24,16 @@ sys.path.insert(0, str(parent_dir))
 
 from database import init_db
 from models import User
-from utils import (add_keywords, get_all_keywords, get_confirmed_words,
-                   get_deleted_words, get_pending_words,
-                   recycle_keywords_to_pending, remove_from_db,
-                   sync_keywords_with_form)
+from utils import (
+    add_keywords,
+    get_all_keywords,
+    get_confirmed_words,
+    get_deleted_words,
+    get_pending_words,
+    recycle_keywords_to_pending,
+    remove_from_db,
+    sync_keywords_with_form,
+)
 
 PORT = int(os.environ.get("PORT", 8000))
 FULLCHAIN = os.environ.get(
