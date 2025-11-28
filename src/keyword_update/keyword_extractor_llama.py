@@ -12,6 +12,7 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from nltk.corpus import stopwords
 from pydantic import BaseModel
+from systemd.daemon import notify
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
@@ -25,6 +26,7 @@ times_tries_extract = LLMAIAPI.times_tries_extract
 times_tries_checking = LLMAIAPI.times_tries_checking
 times_double_check = LLMAIAPI.times_double_check
 ignore_function_words = LLMAIAPI.ignore_function_words
+threshold_checking = LLMAIAPI.threshold_checking
 
 nltk.download("stopwords")
 ner = pipeline("ner", grouped_entities=True, device=-1)
@@ -140,6 +142,7 @@ def extract_kw_transcripts(transcripts):
                     keywords.extend(keyword)
 
     keywords = list(set(keywords))
+    print(keywords)  # TODO remove
     return keywords
 
 
@@ -170,9 +173,7 @@ def check_kw_extracted(keywords):
             )
 
     cnt = Counter(keywords_extracted)
-    keywords_extracted = {
-        k for k, v in cnt.items() if v > math.ceil(times_tries_checking / 2)
-    }
+    keywords_extracted = {k for k, v in cnt.items() if v >= threshold_checking}
 
     cleaned_keywords = []
     for key in keywords_extracted:
@@ -197,7 +198,7 @@ def double_check_kw(keywords):
         else:
             filtered_keywords.append(key.lower())
 
-    print(f"**** Filtered Keywords are {len(filtered_keywords)}")
+    print(f"**** Filtered Keywords are {filtered_keywords}")
     for fnum in range(times_double_check):
         keywords_decision = {}
         for keyword in tqdm(filtered_keywords, desc=f"Iteration {fnum+1}"):
@@ -242,6 +243,7 @@ def check_keywords(data: TranscriptInput):
 if __name__ == "__main__":
     import uvicorn
 
+    notify("READY=1")
     uvicorn.run(
         "keyword_extractor_llama:app",  # module:app instance
         host="0.0.0.0",  # or "0.0.0.0" for external access

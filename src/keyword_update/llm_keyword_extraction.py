@@ -13,7 +13,7 @@ def extract(transcripts: list[str]) -> list[str]:
     data_decision = response.json()
 
     keywords_unchecked = []
-    for keys in data_decision.values():
+    for keys in data_decision:
         if keys:
             keys = [key for key in keys if key is not None and len(key) > 5]
             keywords_unchecked.extend(keys)
