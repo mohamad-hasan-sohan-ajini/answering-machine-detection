@@ -5,6 +5,7 @@ import sys
 from argparse import ArgumentParser
 from datetime import datetime, timedelta
 from pathlib import Path
+from time import time
 
 import requests
 
@@ -12,10 +13,10 @@ file_path = Path(__file__).resolve()
 parent_dir = file_path.parent.parent
 sys.path.insert(0, str(parent_dir))
 
-from config import KeywordAPIAccess, ObjectStorage
 from minio import Minio
+from redis import Redis
 
-import llm_keyword_extraction
+from config import LLMAIAPI, Algorithm, KeywordAPIAccess, ObjectStorage
 from database import db_session
 from models import AMDRecord
 
@@ -24,6 +25,32 @@ headers = {
     "Content-Type": "application/json",
     "Authorization": f"Bearer {KeywordAPIAccess.token}",
 }
+
+
+def llm_keyword_extraction(transcripts: str):
+    data = {"transcripts": transcripts}
+    response = requests.post(
+        LLMAIAPI.api, json=data, headers={"Content-Type": "application/json"}
+    )
+    return response.json()
+
+
+class CacheCalls:
+    def __init__(self):
+        CacheCalls.redis = Redis(
+            host=Algorithm.redis_host,
+            port=Algorithm.redis_port,
+            decode_responses=True,
+        )
+
+    @staticmethod
+    def add(audio_ids):
+        for audio_id in audio_ids:
+            CacheCalls.redis.set(audio_id, time(), ex=7 * 24 * 3600)
+
+    @staticmethod
+    def get(audio_id):
+        return CacheCalls.redis.get(audio_id)
 
 
 def get_calls_from_past_week(db_session):
@@ -45,6 +72,7 @@ def get_calls_from_past_week(db_session):
 
 def main(url):
     calls = get_calls_from_past_week(db_session)
+    cache = CacheCalls()
 
     client = Minio(
         ObjectStorage.minio_url,
@@ -53,10 +81,15 @@ def main(url):
         secure=False,
     )
 
+    call_ids_processed = []
     transcripts = []
     for call in calls:
         call_id = call.call_id
         # fetch metadata
+        call_status = cache.get(call_id)
+        if call_status:
+            continue
+        call_ids_processed.append(call_id)
         try:
             metadata = client.get_object(
                 ObjectStorage.minio_metadata_bucket_name,
@@ -74,7 +107,7 @@ def main(url):
         logger.warning("No transcript found")
         return -1
 
-    keywords = llm_keyword_extraction.extract(transcripts)
+    keywords = llm_keyword_extraction(transcripts)
 
     for p in range(0, len(keywords), 32):
         data = {
@@ -89,6 +122,7 @@ def main(url):
         )
         if response.status_code == 200:
             response = response.json()
+            cache.add(call_ids_processed)
             logger.info(response)
         else:
             logger.error(response.text)
