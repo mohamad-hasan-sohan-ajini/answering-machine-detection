@@ -1,0 +1,17 @@
+[Unit]
+Description=API for keyword extraction using LLAMA
+After=network.target
+BindsTo=fetch_keyword_callrecords.service
+PartOf=fetch_keyword_callrecords.service
+
+[Service]
+Type=notify
+NotifyAccess=all
+ExecStart=/bin/bash -c \
+'log_file="/root/answering-machine-detection/src/keyword_update/log/llm-$(date +%%Y-%%m-%%d-%%H).txt" && source /root/.bashrc && /root/venv/bin/python /root/answering-machine-detection/src/keyword_update/keyword_extractor_llama.py >> "$log_file" 2>&1;'
+
+RestartSec=3
+Environment="PATH=/usr/local/bin:/usr/bin"
+StandardOutput=journal
+RemainAfterExit=false
+User=root
