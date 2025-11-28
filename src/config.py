@@ -97,6 +97,8 @@ class LLMAIAPI:
     times_tries_checking: int = int(os.getenv("TIMES_TRIES_CHECKING"))
     times_double_check: int = int(os.getenv("TIMES_DOUBLE_CHECK"))
     ignore_function_words: bool = os.getenv("IGNORE_FUNCTION_WORDS")
+    threshold_checking: int = int(os.getenv("THRESHOLD_CHECKING"))
+    api: str = os.getenv("LLAMA_API")
 
 
 @dataclass
