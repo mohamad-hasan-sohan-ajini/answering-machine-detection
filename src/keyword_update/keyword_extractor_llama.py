@@ -25,7 +25,7 @@ from config import LLMAIAPI
 times_tries_extract = LLMAIAPI.times_tries_extract
 times_tries_checking = LLMAIAPI.times_tries_checking
 times_double_check = LLMAIAPI.times_double_check
-ignore_function_words = LLMAIAPI.ignore_function_words
+ignore_stop_words = LLMAIAPI.ignore_stop_words
 threshold_checking = LLMAIAPI.threshold_checking
 
 nltk.download("stopwords")
@@ -127,7 +127,7 @@ def __check_keywords__(keyword):
     return None
 
 
-def __detect_function_words__(sentence):
+def __detect_stop_words__(sentence):
     words = sentence.split()
     return [w for w in words if w.lower() in stop_words]
 
@@ -192,8 +192,8 @@ def check_kw_extracted(keywords):
 def double_check_kw(keywords):
     filtered_keywords = []
     for key in keywords:
-        if ignore_function_words:
-            if not __detect_function_words__(key) and not ner(key):
+        if ignore_stop_words:
+            if not __detect_stop_words__(key) and not ner(key):
                 filtered_keywords.append(key.lower())
         else:
             filtered_keywords.append(key.lower())
